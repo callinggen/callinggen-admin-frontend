@@ -71,28 +71,7 @@ export function UserManagementTable() {
       header: "Remaining Credits",
       cell: info => info.getValue().toLocaleString()
     }),
-    columnHelper.accessor("apiKey", {
-      header: "API Key",
-      cell: info => {
-        const key = info.getValue()
-        const isCopied = copiedKey === key
-        return (
-          <div className="flex items-center gap-2 group/key">
-            <code className="text-xs bg-muted px-1.5 py-0.5 rounded text-muted-foreground">
-              {key.substring(0, 8)}...
-            </code>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6 opacity-0 group-hover/key:opacity-100 transition-opacity"
-              onClick={(e) => copyToClipboard(e, key)}
-            >
-              {isCopied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
-            </Button>
-          </div>
-        )
-      }
-    }),
+
     columnHelper.accessor("status", {
       header: "Status",
       cell: info => {

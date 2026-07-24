@@ -28,7 +28,9 @@ const userFormSchema = z.object({
   confirmPassword: z.string().min(6, "Confirm password is required"),
   plan: z.enum(["Demo", "Starter", "Standard", "Pro", "Optional"]),
   credits: z.number().min(0, "Credits cannot be negative"),
-  phone: z.string().min(1, "Phone number is required"),
+  phones: z.array(z.object({
+    number: z.string().min(1, "Phone number is required")
+  })).min(1, "At least one phone number is required"),
   provider: z.string(),
   agents: z.array(z.object({
     id: z.string(),
@@ -64,7 +66,7 @@ export default function CreateUserPage() {
       confirmPassword: "",
       plan: "Demo",
       credits: 50,
-      phone: "",
+      phones: [{ number: "" }],
       provider: "Vobiz",
       agents: [{
         id: `AGT-${Math.floor(Math.random() * 10000)}`,
@@ -79,6 +81,11 @@ export default function CreateUserPage() {
 
   const { fields: agents, append, remove } = useFieldArray({
     name: "agents",
+    control: form.control
+  })
+
+  const { fields: phones, append: appendPhone, remove: removePhone } = useFieldArray({
+    name: "phones",
     control: form.control
   })
 
@@ -115,7 +122,7 @@ export default function CreateUserPage() {
         name: data.name,
         email: data.email,
         mobile: data.mobile,
-        phone: data.phone,
+        phone: data.phones.map(p => p.number).join(", "),
         password: data.password,
         industry: data.industry,
         provider: data.provider,
@@ -253,7 +260,38 @@ export default function CreateUserPage() {
                   className={selectedPlan !== "Optional" ? "bg-muted/50" : ""}
                 />
                 
-                <InputGroup label="Dedicated Phone Number" icon={Phone} placeholder="+1 (555) 123-4567" {...form.register("phone")} error={errors.phone?.message} />
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-sm font-medium leading-none text-foreground/90">Dedicated Phone Numbers</label>
+                    <Button type="button" variant="outline" size="sm" onClick={() => appendPhone({ number: "" })} className="h-7 gap-1 rounded-lg px-2">
+                      <Plus className="h-3.5 w-3.5" /> Add
+                    </Button>
+                  </div>
+                  <div className="space-y-3">
+                    {phones.map((phoneItem, index) => (
+                      <div key={phoneItem.id} className="flex items-start gap-2">
+                        <div className="relative flex-1">
+                          <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                          <input
+                            className={cn(
+                              "flex h-10 w-full rounded-xl border bg-background px-3 py-2 pl-9 text-sm ring-offset-background transition-all",
+                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary",
+                              errors.phones?.[index]?.number ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30" : "border-input"
+                            )}
+                            placeholder="+1 (555) 123-4567"
+                            {...form.register(`phones.${index}.number`)}
+                          />
+                          {errors.phones?.[index]?.number?.message && <p className="text-[0.8rem] font-medium text-destructive mt-1 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-destructive inline-block"/> {errors.phones[index]?.number?.message}</p>}
+                        </div>
+                        {phones.length > 1 && (
+                          <Button type="button" variant="ghost" size="icon" onClick={() => removePhone(index)} className="h-10 w-10 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <InputGroup label="Telephony Provider" icon={Server} {...form.register("provider")} readOnly className="bg-muted/50 cursor-not-allowed" error={errors.provider?.message} />
               </div>
             </CardContent>

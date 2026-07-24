@@ -19,7 +19,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      router.replace("/")
+      router.replace("/dashboard")
     }
   }, [isAuthenticated, router])
 
@@ -31,7 +31,7 @@ export function LoginPage() {
       await login(email, password, rememberMe)
       toast.success("Welcome back! Redirecting to the admin portal.")
       await new Promise((resolve) => setTimeout(resolve, 850))
-      router.replace("/")
+      router.replace("/dashboard")
     } catch {
       toast.error("Invalid credentials.")
     } finally {
@@ -40,18 +40,18 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,_rgba(108,76,241,0.14),_transparent_38%),linear-gradient(135deg,_#ffffff_0%,_#f8f9ff_100%)] p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-7xl overflow-hidden rounded-[32px] border border-border/70 bg-white/85 shadow-[0_24px_120px_rgba(15,23,42,0.08)] backdrop-blur xl:min-h-[calc(100vh-3rem)]">
+    <div className="min-h-screen bg-background bg-[radial-gradient(circle_at_top_left,_rgba(108,76,241,0.14),_transparent_38%)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(129,140,248,0.14),_transparent_38%)] p-4 sm:p-6 lg:p-8">
+      <div className="mx-auto flex min-h-[calc(100vh-2rem)] max-w-7xl overflow-hidden rounded-[32px] border border-border/70 bg-background/85 shadow-[0_24px_120px_rgba(15,23,42,0.08)] backdrop-blur xl:min-h-[calc(100vh-3rem)]">
         <motion.div
           initial={{ opacity: 0, x: -24 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.45, ease: "easeOut" }}
-          className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-[linear-gradient(145deg,_#f5f1ff_0%,_#ffffff_42%,_#eef2ff_100%)] p-8 lg:flex"
+          className="relative hidden flex-1 flex-col justify-between overflow-hidden bg-gradient-to-br from-primary/5 via-background to-primary/5 p-8 lg:flex"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(108,76,241,0.18),_transparent_28%),radial-gradient(circle_at_80%_20%,_rgba(56,189,248,0.16),_transparent_22%),radial-gradient(circle_at_60%_80%,_rgba(129,140,248,0.16),_transparent_22%)]" />
           <div className="absolute left-12 top-12 h-40 w-40 rounded-full border border-primary/10" />
           <div className="absolute bottom-10 right-8 h-56 w-56 rounded-full border border-primary/10" />
-          <div className="absolute left-20 top-24 h-24 w-24 rounded-3xl border border-primary/10 bg-white/70 backdrop-blur" />
+          <div className="absolute left-20 top-24 h-24 w-24 rounded-3xl border border-primary/10 bg-background/70 backdrop-blur" />
 
           <div className="relative z-10">
             <div className="flex items-center gap-3">
@@ -65,7 +65,7 @@ export function LoginPage() {
             </div>
 
             <div className="mt-14 max-w-md space-y-4">
-              <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-white/80 px-3 py-1 text-sm font-medium text-primary shadow-sm">
+              <div className="inline-flex items-center gap-2 rounded-full border border-primary/10 bg-background/80 px-3 py-1 text-sm font-medium text-primary shadow-sm">
                 <Sparkles className="h-4 w-4" />
                 Premium operator workspace
               </div>
@@ -208,7 +208,7 @@ export function LoginPage() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 12 }}
-              className="flex flex-col items-center gap-4 rounded-3xl border border-border/70 bg-white px-8 py-8 shadow-[0_20px_80px_rgba(15,23,42,0.12)]"
+              className="flex flex-col items-center gap-4 rounded-3xl border border-border/70 bg-background px-8 py-8 shadow-[0_20px_80px_rgba(15,23,42,0.12)]"
             >
               <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-lg font-semibold text-primary">
                 CG

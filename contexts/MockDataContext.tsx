@@ -1,6 +1,6 @@
 "use client"
 
-import React, { createContext, useContext, useState } from "react"
+import React, { createContext, useContext, useState, useEffect } from "react"
 import type { User, Agent } from "@/components/UserDetailsDrawer"
 
 export type Notification = {
@@ -121,19 +121,107 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS)
   const [pricingRequests, setPricingRequests] = useState<PricingRequest[]>(INITIAL_PRICING_REQUESTS)
   const [demoUsers, setDemoUsers] = useState<DemoUser[]>(INITIAL_DEMO_USERS)
+  const [isHydrated, setIsHydrated] = useState(false)
 
-  const addUser = (user: User) => setUsers(prev => [user, ...prev])
-  const updateUser = (id: string, data: Partial<User>) => setUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u))
-  const deleteUser = (id: string) => setUsers(prev => prev.filter(u => u.id !== id))
+  // Load from localStorage on client side mount
+  useEffect(() => {
+    const localUsers = localStorage.getItem("callinggen_users")
+    const localNotifications = localStorage.getItem("callinggen_notifications")
+    const localPricing = localStorage.getItem("callinggen_pricing_requests")
+    const localDemos = localStorage.getItem("callinggen_demo_users")
+
+    if (localUsers) setUsers(JSON.parse(localUsers))
+    if (localNotifications) setNotifications(JSON.parse(localNotifications))
+    if (localPricing) setPricingRequests(JSON.parse(localPricing))
+    if (localDemos) setDemoUsers(JSON.parse(localDemos))
+
+    setIsHydrated(true)
+  }, [])
+
+  // Write changes to localStorage
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("callinggen_users", JSON.stringify(users))
+    }
+  }, [users, isHydrated])
+
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("callinggen_notifications", JSON.stringify(notifications))
+    }
+  }, [notifications, isHydrated])
+
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("callinggen_pricing_requests", JSON.stringify(pricingRequests))
+    }
+  }, [pricingRequests, isHydrated])
+
+  useEffect(() => {
+    if (isHydrated) {
+      localStorage.setItem("callinggen_demo_users", JSON.stringify(demoUsers))
+    }
+  }, [demoUsers, isHydrated])
+
+  const createNotification = (title: string) => {
+    setNotifications(prev => [
+      {
+        id: `NTF-${Math.floor(Math.random() * 100000)}`,
+        title,
+        time: "Just now",
+        read: false
+      },
+      ...prev
+    ])
+  }
+
+  const addUser = (user: User) => {
+    setUsers(prev => [user, ...prev])
+    createNotification(`New user account created: ${user.organization}`)
+  }
+
+  const updateUser = (id: string, data: Partial<User>) => {
+    setUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u))
+    const orgName = data.organization || id
+    createNotification(`User account details updated: ${orgName}`)
+  }
+
+  const deleteUser = (id: string) => {
+    const userToDelete = users.find(u => u.id === id)
+    setUsers(prev => prev.filter(u => u.id !== id))
+    createNotification(`User deleted: ${userToDelete?.organization || id}`)
+  }
+
   const markAllNotificationsRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })))
 
-  const updatePricingRequest = (id: string, data: Partial<PricingRequest>) =>
+  const updatePricingRequest = (id: string, data: Partial<PricingRequest>) => {
     setPricingRequests(prev => prev.map(r => r.id === id ? { ...r, ...data } : r))
+    const request = pricingRequests.find(r => r.id === id)
+    if (data.status) {
+      createNotification(`Pricing request for ${request?.organization || id} marked as ${data.status}`)
+    }
+  }
 
-  const addDemoUser = (user: DemoUser) => setDemoUsers(prev => [user, ...prev])
-  const updateDemoUser = (id: string, data: Partial<DemoUser>) =>
+  const addDemoUser = (user: DemoUser) => {
+    setDemoUsers(prev => [user, ...prev])
+    createNotification(`Demo request received from ${user.company}`)
+  }
+
+  const updateDemoUser = (id: string, data: Partial<DemoUser>) => {
     setDemoUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u))
-  const deleteDemoUser = (id: string) => setDemoUsers(prev => prev.filter(u => u.id !== id))
+    const demo = demoUsers.find(d => d.id === id)
+    if (data.status) {
+      createNotification(`Demo user ${demo?.name} status updated to ${data.status}`)
+    } else {
+      createNotification(`Demo user ${demo?.name || id} details updated`)
+    }
+  }
+
+  const deleteDemoUser = (id: string) => {
+    const demoToDelete = demoUsers.find(d => d.id === id)
+    setDemoUsers(prev => prev.filter(u => u.id !== id))
+    createNotification(`Demo user deleted: ${demoToDelete?.name || id}`)
+  }
 
   const convertDemoToUser = (demoUserId: string, plan: User["plan"], credits: number) => {
     const demoUser = demoUsers.find(u => u.id === demoUserId)
@@ -160,6 +248,7 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
 
     setUsers(prev => [newUser, ...prev])
     setDemoUsers(prev => prev.filter(u => u.id !== demoUserId))
+    createNotification(`Converted Demo Lead ${demoUser.name} to ${plan} Plan`)
   }
 
   return (

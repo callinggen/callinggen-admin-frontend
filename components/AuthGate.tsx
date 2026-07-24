@@ -31,7 +31,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (!isHydrated || isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top_left,_rgba(108,76,241,0.14),_transparent_42%),linear-gradient(135deg,_#ffffff_0%,_#f8f9ff_100%)]">
+      <div className="flex min-h-screen items-center justify-center bg-background bg-[radial-gradient(circle_at_top_left,_rgba(108,76,241,0.14),_transparent_42%)] dark:bg-[radial-gradient(circle_at_top_left,_rgba(129,140,248,0.14),_transparent_42%)]">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}

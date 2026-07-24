@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   // Hashed password created by Admin
+  name      String?
+  
+  // Relationships
+  planId       String?
+  plan         Plan?         @relation(fields: [planId], references: [id])
+  agents       Agent[]
+  campaigns    Campaign[]
+  phoneNumbers PhoneNumber[] // Multiple numbers per user/client
+}
+
+model PhoneNumber {
+  id          String @id @default(cuid())
+  number      String
+  platform    String // Where you got the number (e.g., "Facebook", "Website", "Manual")
+  
+  // Belongs to User
+  userId      String
+  user        User   @relation(fields: [userId], references: [id])
+}
+
+model Plan {
+  id          String  @id @default(cuid())
+  name        String  // e.g., "Basic", "Pro", "Enterprise"
+  maxAgents   Int     
+  users       User[]
+}
+
+model Agent {
+  id          String  @id @default(cuid())
+  name        String
+  purpose     String
+  
+  // Belongs to User
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
+}
+
+model Campaign {
+  id          String  @id @default(cuid())
+  name        String
+  status      String
+  
+  userId      String
+  user        User    @relation(fields: [userId], references: [id])
+}

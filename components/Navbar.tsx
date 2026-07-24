@@ -2,19 +2,18 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { UserPlus, LogOut } from "lucide-react"
+import { LogOut } from "lucide-react"
 import { motion } from "framer-motion"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { useAuth } from "@/contexts/AuthContext"
 import { NotificationsDropdown } from "./NotificationsDropdown"
-import { UserFormModal } from "./UserFormModal"
+import { ThemeToggle } from "./ThemeToggle"
 
 export function Navbar() {
   const router = useRouter()
   const { user, logout } = useAuth()
-  const [isUserModalOpen, setIsUserModalOpen] = useState(false)
 
   const initials = useMemo(() => {
     if (!user?.name) return "AD"
@@ -55,17 +54,10 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggle />
           <NotificationsDropdown />
 
-          <Button
-            className="hidden sm:flex gap-2 h-9 px-4 text-sm font-medium shadow-sm hover:shadow-md transition-shadow"
-            onClick={() => setIsUserModalOpen(true)}
-          >
-            <UserPlus className="h-4 w-4" />
-            Create User
-          </Button>
 
-          <div className="h-5 w-px bg-border/80 mx-1" />
 
           <div className="flex items-center gap-2.5 cursor-pointer group pl-1">
             <div className="hidden sm:flex flex-col items-end">
@@ -91,7 +83,6 @@ export function Navbar() {
         </div>
       </motion.header>
 
-      <UserFormModal open={isUserModalOpen} onOpenChange={setIsUserModalOpen} />
     </>
   )
 }
