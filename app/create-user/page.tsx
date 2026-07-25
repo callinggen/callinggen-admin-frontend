@@ -101,47 +101,71 @@ export default function CreateUserPage() {
     else if (selectedPlan === "Optional") form.setValue("credits", 0)
   }, [selectedPlan, form])
 
-  const onSubmit = (data: UserFormValues) => {
-    if (data.plan === "Demo") {
-      addDemoUser({
-        id: `DMO-${Math.floor(Math.random() * 10000)}`,
-        name: data.name,
-        email: data.email,
-        phone: data.mobile,
-        company: data.companyName,
-        role: "User",
-        requestDate: new Date().toISOString(),
-        status: "Pending",
-        notes: "Created via Admin Create User form"
-      })
-      toast.success("Demo user created successfully!")
-      router.push("/demo")
-    } else {
-      addUser({
-        id: `USR-${1000 + users.length + 1}`,
-        name: data.name,
-        email: data.email,
-        mobile: data.mobile,
-        phone: data.phones.map(p => p.number).join(", "),
-        password: data.password,
-        industry: data.industry,
-        provider: data.provider,
-        organization: data.companyName,
-        plan: data.plan as any,
-        credits: data.credits,
-        apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
-        type: "Regular",
-        status: "Active",
-        createdAt: new Date().toISOString(),
-        agents: data.agents.map(a => ({ 
-          ...a, 
-          script: a.script || "",
-          knowledgebaseDoc: a.knowledgebaseDoc || "",
-          status: "Active" 
-        }))
-      })
-      toast.success("User created successfully!")
-      router.push("/users")
+  const onSubmit = async (data: UserFormValues) => {
+    try {
+      // 1. Sync with Real Backend Database
+      const response = await fetch("http://localhost:8000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: data.name,
+          email: data.email,
+          phone_number: data.mobile,
+          password: data.password
+        })
+      });
+      
+      if (!response.ok) {
+        const errData = await response.json();
+        toast.error(errData.detail || "Failed to create user in backend database");
+        return;
+      }
+
+      // 2. Add to mock state for admin UI consistency
+      if (data.plan === "Demo") {
+        addDemoUser({
+          id: `DMO-${Math.floor(Math.random() * 10000)}`,
+          name: data.name,
+          email: data.email,
+          phone: data.mobile,
+          company: data.companyName,
+          role: "User",
+          requestDate: new Date().toISOString(),
+          status: "Pending",
+          notes: "Created via Admin Create User form"
+        })
+        toast.success("Demo user created and synced to DB!")
+        router.push("/demo")
+      } else {
+        addUser({
+          id: `USR-${1000 + users.length + 1}`,
+          name: data.name,
+          email: data.email,
+          mobile: data.mobile,
+          phone: data.phones.map(p => p.number).join(", "),
+          password: data.password,
+          industry: data.industry,
+          provider: data.provider,
+          organization: data.companyName,
+          plan: data.plan as any,
+          credits: data.credits,
+          apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
+          type: "Regular",
+          status: "Active",
+          createdAt: new Date().toISOString(),
+          agents: data.agents.map(a => ({ 
+            ...a, 
+            script: a.script || "",
+            knowledgebaseDoc: a.knowledgebaseDoc || "",
+            status: "Active" 
+          }))
+        })
+        toast.success("User created and synced to DB!")
+        router.push("/users")
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("Network error while connecting to backend database");
     }
   }
 
