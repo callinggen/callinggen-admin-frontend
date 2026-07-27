@@ -4,11 +4,14 @@ import { KPICards } from "@/components/KPICards"
 import { RecentActivity } from "@/components/RecentActivity"
 import { SystemHealth } from "@/components/SystemHealth"
 import { motion } from "framer-motion"
+import { useAuth } from "@/contexts/AuthContext"
 
 export default function DashboardPage() {
+  const { user } = useAuth()
+
   return (
     <div className="flex flex-col gap-6 pb-8">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
@@ -17,14 +20,14 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
-            Welcome back, Admin. Here is what's happening today.
+            Welcome back, {user?.name || "Admin"} 👋 Here is what's happening today.
           </p>
         </div>
       </motion.div>
 
       <div className="space-y-6">
         <KPICards />
-        
+
         <div className="grid grid-cols-1 gap-6">
           <RecentActivity />
         </div>
