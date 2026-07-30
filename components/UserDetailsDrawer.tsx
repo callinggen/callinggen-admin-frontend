@@ -61,14 +61,6 @@ export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerPr
     }
   }, [isOpen])
 
-  const copyApiKey = () => {
-    if (user?.apiKey) {
-      navigator.clipboard.writeText(user.apiKey)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }
-  }
-
   return (
     <>
       <AnimatePresence>
@@ -174,18 +166,6 @@ export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerPr
                     </div>
                   </div>
 
-                  {/* API Key */}
-                  <div className="mt-4 p-3 rounded-lg border bg-muted/30">
-                    <p className="text-xs text-muted-foreground mb-1">API Key</p>
-                    <div className="flex items-center justify-between gap-2">
-                      <code className="text-sm bg-background px-2 py-1 rounded truncate flex-1 border">
-                        {user.apiKey.substring(0, 8)}••••••••••••••••
-                      </code>
-                      <Button variant="ghost" size="icon" onClick={copyApiKey} className="h-8 w-8">
-                        {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
-                      </Button>
-                    </div>
-                  </div>
                 </section>
 
                 {/* Agents */}
@@ -241,10 +221,6 @@ export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerPr
                 <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setIsEditModalOpen(true)}>
                   <Edit2 className="h-4 w-4 text-muted-foreground" />
                   Edit User
-                </Button>
-                <Button variant="outline" className="w-full justify-start gap-2" onClick={copyApiKey}>
-                  {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4 text-muted-foreground" />}
-                  Copy API Key
                 </Button>
                 <Button variant="outline" className="w-full justify-start gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30">
                   <KeyRound className="h-4 w-4" />

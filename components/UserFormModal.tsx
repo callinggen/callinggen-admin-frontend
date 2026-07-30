@@ -17,7 +17,6 @@ const userSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
   organization: z.string().min(1, "Organization is required"),
   plan: z.enum(["Starter", "Standard", "Pro", "Optional", "Demo"]),
-  apiKey: z.string().min(1, "API Key is required"),
   agents: z.array(z.object({
     id: z.string().min(1, "Agent ID is required"),
     name: z.string().min(1, "Agent Name is required"),
@@ -45,7 +44,6 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
       password: "",
       organization: "",
       plan: "Starter",
-      apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
       agents: []
     }
   })
@@ -65,7 +63,6 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
           password: "", // Don't pre-fill password
           organization: userToEdit.organization,
           plan: userToEdit.plan,
-          apiKey: userToEdit.apiKey,
           agents: userToEdit.agents
         })
       } else {
@@ -75,7 +72,6 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
           password: "",
           organization: "",
           plan: "Starter",
-          apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
           agents: []
         })
       }
@@ -102,7 +98,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
         email: data.email,
         organization: data.organization,
         plan: data.plan,
-        apiKey: data.apiKey,
+        type: data.plan === "Demo" ? "Demo" : "Regular",
         agents: data.agents as Agent[]
       })
       toast.success("User updated successfully!")
@@ -117,7 +113,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
         provider: "Vobiz",
         organization: data.organization,
         plan: data.plan,
-        apiKey: data.apiKey,
+        apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
         type: "Regular",
         status: "Active",
         credits: 10000,
@@ -173,7 +169,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
               <label className="text-sm font-medium leading-none">Password {isEditing && "(Leave blank to keep)"}</label>
               <Input type="password" {...form.register("password")} error={form.formState.errors.password?.message} />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium leading-none">Selected Plan</label>
               <select 
                 {...form.register("plan")}
@@ -185,15 +181,6 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
                 <option value="Optional">Optional</option>
                 <option value="Demo">Demo</option>
               </select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium leading-none">API Key</label>
-              <div className="flex gap-2">
-                <Input {...form.register("apiKey")} error={form.formState.errors.apiKey?.message} readOnly />
-                <Button type="button" variant="outline" size="icon" onClick={() => form.setValue("apiKey", `cg_live_${Math.random().toString(36).substring(2, 15)}`)}>
-                  <KeyRound className="h-4 w-4" />
-                </Button>
-              </div>
             </div>
           </div>
 

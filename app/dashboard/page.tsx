@@ -1,13 +1,9 @@
 "use client"
 
 import { KPICards } from "@/components/KPICards"
-import { RecentActivity } from "@/components/RecentActivity"
-import { SystemHealth } from "@/components/SystemHealth"
 import { motion } from "framer-motion"
-import { useAuth } from "@/contexts/AuthContext"
-
 export default function DashboardPage() {
-  const { user } = useAuth()
+  const user = { name: "Admin User" }
 
   return (
     <div className="flex flex-col gap-6 pb-8">
@@ -27,13 +23,6 @@ export default function DashboardPage() {
 
       <div className="space-y-6">
         <KPICards />
-
-        <div className="grid grid-cols-1 gap-6">
-          <RecentActivity />
-        </div>
-
-        {/* System Diagnostics */}
-        <SystemHealth />
       </div>
     </div>
   )

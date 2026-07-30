@@ -8,8 +8,6 @@ import { UserPlus } from "lucide-react"
 import { UserFormModal } from "@/components/UserFormModal"
 
 export default function UsersPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
   return (
     <div className="flex flex-col gap-6 pb-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       {/* Header */}
@@ -20,19 +18,12 @@ export default function UsersPage() {
             Manage all CallingGen platform users.
           </p>
         </div>
-        
-        <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
-          <UserPlus className="h-4 w-4" />
-          Create User
-        </Button>
       </div>
 
       {/* Main Table Content */}
       <Suspense fallback={<UserTableSkeleton />}>
-        <UserManagementTable />
+        <UserManagementTable filterType="Regular" />
       </Suspense>
-
-      <UserFormModal open={isModalOpen} onOpenChange={setIsModalOpen} />
     </div>
   )
 }

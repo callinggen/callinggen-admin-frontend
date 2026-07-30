@@ -17,13 +17,9 @@ export function KPICards() {
 
   const kpiData = [
     { title: "Total Users", value: totalUsers.toLocaleString(), trend: "+12%", up: true, icon: Users, color: "primary" },
-    { title: "Regular Users", value: regularUsers.toLocaleString(), trend: "+5%", up: true, icon: UserCircle, color: "blue" },
+    { title: "Paid Users", value: regularUsers.toLocaleString(), trend: "+5%", up: true, icon: UserCircle, color: "blue" },
     { title: "Demo Users", value: demoUserCount.toLocaleString(), trend: "+24%", up: true, icon: UserSquare2, color: "violet" },
-    { title: "Pricing Requests", value: pendingPricing.toLocaleString(), trend: "-2%", up: false, icon: CreditCard, color: "amber" },
-    { title: "Active Agents", value: activeAgents.toLocaleString(), trend: "+18%", up: true, icon: Bot, color: "emerald" },
-    { title: "Credits Used Today", value: "450k", trend: "+8%", up: true, icon: Zap, color: "cyan" },
-    { title: "Monthly Revenue", value: "$124,500", trend: "+15%", up: true, icon: DollarSign, color: "green" },
-    { title: "Active API Keys", value: users.filter(u => u.status === "Active").length.toLocaleString(), trend: "+4%", up: true, icon: Key, color: "indigo" },
+    { title: "Credits Given", value: "450k", trend: "+8%", up: true, icon: Zap, color: "cyan" },
   ]
 
   return (

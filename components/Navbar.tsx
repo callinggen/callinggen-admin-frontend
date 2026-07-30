@@ -7,13 +7,11 @@ import { motion } from "framer-motion"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useAuth } from "@/contexts/AuthContext"
-import { NotificationsDropdown } from "./NotificationsDropdown"
 import { ThemeToggle } from "./ThemeToggle"
 
 export function Navbar() {
   const router = useRouter()
-  const { user, logout } = useAuth()
+  const user = { name: "Admin User", email: "admin@callinggen.ai" }
 
   const initials = useMemo(() => {
     if (!user?.name) return "AD"
@@ -25,15 +23,6 @@ export function Navbar() {
       .toUpperCase()
   }, [user?.name])
 
-  const handleLogout = () => {
-    if (!window.confirm("Are you sure you want to sign out?")) {
-      return
-    }
-
-    logout()
-    toast.success("Signed out successfully.")
-    router.replace("/login")
-  }
 
   return (
     <>
@@ -55,7 +44,6 @@ export function Navbar() {
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          <NotificationsDropdown />
 
 
 
@@ -72,15 +60,7 @@ export function Navbar() {
             </Avatar>
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-lg ml-1"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
+          </div>
       </motion.header>
 
     </>

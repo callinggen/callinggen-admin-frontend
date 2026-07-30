@@ -26,23 +26,19 @@ const userFormSchema = z.object({
   mobile: z.string().min(1, "Mobile number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password is required"),
-  plan: z.enum(["Demo", "Starter", "Standard", "Pro", "Optional"]),
+  plan: z.enum(["", "Demo", "Starter", "Standard", "Pro", "Optional"]).refine(val => val !== "", "Plan is required"),
   credits: z.number().min(0, "Credits cannot be negative"),
   phones: z.array(z.object({
-    number: z.string().min(1, "Phone number is required")
+    number: z.string().min(1, "Phone number is required"),
+    provider: z.string().min(1, "Provider is required")
   })).min(1, "At least one phone number is required"),
-  provider: z.string(),
   agents: z.array(z.object({
     id: z.string(),
     name: z.string().min(1, "Agent name is required"),
     language: z.string().min(1, "Language is required"),
     voice: z.string().min(1, "Voice is required"),
-    script: z.string().optional(),
-    knowledgebaseDoc: z.string().optional()
-  })).refine(agents => agents.every(a => a.script || a.knowledgebaseDoc), {
-    message: "Provide either a script or a knowledgebase document",
-    path: ["0", "script"]
-  })
+    script: z.string().min(1, "Agent script is required")
+  }))
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ["confirmPassword"],
@@ -64,17 +60,15 @@ export default function CreateUserPage() {
       mobile: "",
       password: "",
       confirmPassword: "",
-      plan: "Demo",
-      credits: 50,
-      phones: [{ number: "" }],
-      provider: "Vobiz",
+      plan: "",
+      credits: 0,
+      phones: [{ number: "", provider: "Vobiz" }],
       agents: [{
         id: `AGT-${Math.floor(Math.random() * 10000)}`,
         name: "",
         language: "English",
         voice: "Female 1",
-        script: "",
-        knowledgebaseDoc: ""
+        script: ""
       }]
     }
   })
@@ -103,66 +97,32 @@ export default function CreateUserPage() {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      // 1. Sync with Real Backend Database
-      const response = await fetch("http://localhost:8000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: data.name,
-          email: data.email,
-          phone_number: data.mobile,
-          password: data.password
-        })
-      });
-      
-      if (!response.ok) {
-        const errData = await response.json();
-        toast.error(errData.detail || "Failed to create user in backend database");
-        return;
-      }
-
       // 2. Add to mock state for admin UI consistency
-      if (data.plan === "Demo") {
-        addDemoUser({
-          id: `DMO-${Math.floor(Math.random() * 10000)}`,
-          name: data.name,
-          email: data.email,
-          phone: data.mobile,
-          company: data.companyName,
-          role: "User",
-          requestDate: new Date().toISOString(),
-          status: "Pending",
-          notes: "Created via Admin Create User form"
-        })
-        toast.success("Demo user created and synced to DB!")
-        router.push("/demo")
-      } else {
-        addUser({
-          id: `USR-${1000 + users.length + 1}`,
-          name: data.name,
-          email: data.email,
-          mobile: data.mobile,
-          phone: data.phones.map(p => p.number).join(", "),
-          password: data.password,
-          industry: data.industry,
-          provider: data.provider,
-          organization: data.companyName,
-          plan: data.plan as any,
-          credits: data.credits,
-          apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
-          type: "Regular",
-          status: "Active",
-          createdAt: new Date().toISOString(),
-          agents: data.agents.map(a => ({ 
-            ...a, 
-            script: a.script || "",
-            knowledgebaseDoc: a.knowledgebaseDoc || "",
-            status: "Active" 
-          }))
-        })
-        toast.success("User created and synced to DB!")
-        router.push("/users")
-      }
+      addUser({
+        id: `USR-${1000 + users.length + 1}`,
+        name: data.name,
+        email: data.email,
+        mobile: data.mobile,
+        phone: data.phones.map(p => `${p.number} (${p.provider})`).join(", "),
+        password: data.password,
+        industry: data.industry,
+        provider: data.phones[0]?.provider || "Vobiz",
+        organization: data.companyName,
+        plan: data.plan as any,
+        credits: data.credits,
+        apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
+        type: data.plan === "Demo" ? "Demo" : "Regular",
+        status: "Active",
+        createdAt: new Date().toISOString(),
+        agents: data.agents.map(a => ({ 
+          ...a, 
+          script: a.script,
+          knowledgebaseDoc: "",
+          status: "Active" 
+        }))
+      })
+      toast.success(data.plan === "Demo" ? "Demo user created!" : "User created!")
+      router.push(data.plan === "Demo" ? "/demo" : "/users")
     } catch (error) {
       console.error(error);
       toast.error("Network error while connecting to backend database");
@@ -178,6 +138,7 @@ export default function CreateUserPage() {
       <div className="relative">
         {Icon && <Icon className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />}
         <input
+          autoComplete={props.autoComplete || "off"}
           className={cn(
             "flex h-10 w-full rounded-xl border bg-background px-3 py-2 text-sm ring-offset-background transition-all",
             "file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground",
@@ -227,7 +188,7 @@ export default function CreateUserPage() {
         <p className="text-muted-foreground mt-1 text-lg">Set up a new client account, configure subscriptions, and initialize their AI agents.</p>
       </motion.div>
 
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8" autoComplete="off">
         
         {/* Section 1: Company & Personal Details */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.1 }}>
@@ -247,8 +208,8 @@ export default function CreateUserPage() {
                 <InputGroup label="Email Address" icon={Mail} type="email" placeholder="jane@example.com" {...form.register("email")} error={errors.email?.message} />
                 <InputGroup label="Mobile Number" icon={Smartphone} placeholder="+1 (555) 000-0000" {...form.register("mobile")} error={errors.mobile?.message} />
                 <div className="hidden md:block"></div> {/* Spacer */}
-                <InputGroup label="Password" icon={Lock} type="password" placeholder="Create a strong password" {...form.register("password")} error={errors.password?.message} />
-                <InputGroup label="Confirm Password" icon={Lock} type="password" placeholder="Confirm password" {...form.register("confirmPassword")} error={errors.confirmPassword?.message} />
+                <InputGroup label="Password" icon={Lock} type="password" autoComplete="new-password" placeholder="Create a strong password" {...form.register("password")} error={errors.password?.message} />
+                <InputGroup label="Confirm Password" icon={Lock} type="password" autoComplete="new-password" placeholder="Confirm password" {...form.register("confirmPassword")} error={errors.confirmPassword?.message} />
               </div>
             </CardContent>
           </Card>
@@ -267,6 +228,7 @@ export default function CreateUserPage() {
             <CardContent className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <SelectGroup label="Subscription Plan" icon={CreditCard} {...form.register("plan")} error={errors.plan?.message}>
+                  <option value="" disabled>Select Plan</option>
                   <option value="Demo">Demo</option>
                   <option value="Starter">Starter</option>
                   <option value="Standard">Standard</option>
@@ -286,26 +248,47 @@ export default function CreateUserPage() {
                 
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium leading-none text-foreground/90">Dedicated Phone Numbers</label>
-                    <Button type="button" variant="outline" size="sm" onClick={() => appendPhone({ number: "" })} className="h-7 gap-1 rounded-lg px-2">
-                      <Plus className="h-3.5 w-3.5" /> Add
+                    <label className="text-sm font-medium leading-none text-foreground/90">Phone Numbers & Providers</label>
+                    <Button type="button" variant="outline" size="sm" onClick={() => appendPhone({ number: "", provider: "Vobiz" })} className="h-7 gap-1 rounded-lg px-2">
+                      <Plus className="h-3.5 w-3.5" /> Add Number
                     </Button>
                   </div>
                   <div className="space-y-3">
                     {phones.map((phoneItem, index) => (
                       <div key={phoneItem.id} className="flex items-start gap-2">
-                        <div className="relative flex-1">
-                          <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <input
-                            className={cn(
-                              "flex h-10 w-full rounded-xl border bg-background px-3 py-2 pl-9 text-sm ring-offset-background transition-all",
-                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary",
-                              errors.phones?.[index]?.number ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30" : "border-input"
-                            )}
-                            placeholder="+1 (555) 123-4567"
-                            {...form.register(`phones.${index}.number`)}
-                          />
-                          {errors.phones?.[index]?.number?.message && <p className="text-[0.8rem] font-medium text-destructive mt-1 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-destructive inline-block"/> {errors.phones[index]?.number?.message}</p>}
+                        <div className="flex flex-1 gap-2">
+                          <div className="relative flex-[2]">
+                            <Phone className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                            <input
+                              className={cn(
+                                "flex h-10 w-full rounded-xl border bg-background px-3 py-2 pl-9 text-sm ring-offset-background transition-all",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary",
+                                errors.phones?.[index]?.number ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30" : "border-input"
+                              )}
+                              placeholder="+1 (555) 123-4567"
+                              {...form.register(`phones.${index}.number`)}
+                            />
+                            {errors.phones?.[index]?.number?.message && <p className="text-[0.8rem] font-medium text-destructive mt-1 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-destructive inline-block"/> {errors.phones[index]?.number?.message}</p>}
+                          </div>
+                          
+                          <div className="relative flex-[1]">
+                            <select
+                              className={cn(
+                                "flex h-10 w-full rounded-xl border bg-background px-3 py-2 text-sm ring-offset-background transition-all appearance-none",
+                                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 focus-visible:border-primary",
+                                errors.phones?.[index]?.provider ? "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30" : "border-input"
+                              )}
+                              {...form.register(`phones.${index}.provider`)}
+                            >
+                              <option value="Vobiz">Vobiz</option>
+                              <option value="Telnyx">Telnyx</option>
+                              <option value="Twilio">Twilio</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                              <ChevronRight className="h-4 w-4 text-muted-foreground rotate-90" />
+                            </div>
+                            {errors.phones?.[index]?.provider?.message && <p className="text-[0.8rem] font-medium text-destructive mt-1 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-destructive inline-block"/> {errors.phones[index]?.provider?.message}</p>}
+                          </div>
                         </div>
                         {phones.length > 1 && (
                           <Button type="button" variant="ghost" size="icon" onClick={() => removePhone(index)} className="h-10 w-10 shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive rounded-xl">
@@ -316,7 +299,6 @@ export default function CreateUserPage() {
                     ))}
                   </div>
                 </div>
-                <InputGroup label="Telephony Provider" icon={Server} {...form.register("provider")} readOnly className="bg-muted/50 cursor-not-allowed" error={errors.provider?.message} />
               </div>
             </CardContent>
           </Card>
@@ -337,7 +319,7 @@ export default function CreateUserPage() {
                 type="button" 
                 variant="outline" 
                 onClick={() => append({ 
-                  id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Female 1", script: "", knowledgebaseDoc: "" 
+                  id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Female 1", script: "" 
                 })}
                 className="gap-2 rounded-xl"
               >
@@ -397,12 +379,12 @@ export default function CreateUserPage() {
                         </SelectGroup>
 
                         <div className="md:col-span-3 space-y-2">
-                          <label className="text-sm font-medium leading-none text-foreground/90">Agent Script / System Prompt <span className="text-muted-foreground font-normal">(Optional if PDF is uploaded)</span></label>
+                          <label className="text-sm font-medium leading-none text-foreground/90">Agent Script / System Prompt</label>
                           <div className="relative">
                             <FileText className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                             <textarea
                               {...form.register(`agents.${index}.script`)}
-                              rows={3}
+                              rows={5}
                               placeholder="Describe how the agent should behave, what it should say, and its goals..."
                               className={cn(
                                 "flex w-full rounded-xl border bg-background px-3 py-2 pl-9 text-sm ring-offset-background transition-all resize-none",
@@ -412,29 +394,6 @@ export default function CreateUserPage() {
                             />
                           </div>
                           {errors.agents?.[index]?.script?.message && <p className="text-[0.8rem] font-medium text-destructive mt-1 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-destructive inline-block"/> {errors.agents[index]?.script?.message}</p>}
-                        </div>
-
-                        <div className="md:col-span-3 space-y-2">
-                          <label className="text-sm font-medium leading-none text-foreground/90">Knowledgebase Document <span className="text-muted-foreground font-normal">(Optional if Script is provided)</span></label>
-                          <div className="flex items-center gap-3">
-                            <label className="flex h-10 w-full cursor-pointer items-center justify-center rounded-xl border border-dashed bg-muted/30 px-3 py-2 text-sm transition-all hover:bg-muted/50 hover:border-primary/50 relative overflow-hidden group">
-                              <Upload className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                              <span className="text-muted-foreground group-hover:text-foreground transition-colors">
-                                {form.watch(`agents.${index}.knowledgebaseDoc`) || "Upload PDF or DOCX..."}
-                              </span>
-                              <input
-                                type="file"
-                                className="hidden"
-                                accept=".pdf,.doc,.docx,.txt"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0]
-                                  if (file) {
-                                    form.setValue(`agents.${index}.knowledgebaseDoc`, file.name)
-                                  }
-                                }}
-                              />
-                            </label>
-                          </div>
                         </div>
                       </div>
                     </motion.div>
