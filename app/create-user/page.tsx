@@ -97,7 +97,30 @@ export default function CreateUserPage() {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      // 2. Add to mock state for admin UI consistency
+      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+      // Persist user to backend database
+      try {
+        const res = await fetch(`${apiBase}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: data.name,
+            email: data.email,
+            phone_number: data.mobile || null,
+            password: data.password,
+          }),
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.warn("Backend creation response:", errData);
+        }
+      } catch (backendErr) {
+        console.warn("Backend API request failed:", backendErr);
+      }
+
+      // Add to mock state for admin UI consistency
       addUser({
         id: `USR-${1000 + users.length + 1}`,
         name: data.name,
