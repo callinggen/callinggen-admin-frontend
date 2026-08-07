@@ -6,31 +6,38 @@ import { cn } from "@/lib/utils"
 import { useMockData } from "@/contexts/MockDataContext"
 
 export function RecentActivity() {
-  const { users, notifications } = useMockData()
+  const { users, notifications, dashboardStats } = useMockData()
 
-  // Limit recent activity to the top 5 notifications
-  const recentActivities = notifications.slice(0, 5).map((n) => {
-    let type = "info"
-    if (n.title.toLowerCase().includes("created") || n.title.toLowerCase().includes("converted") || n.title.toLowerCase().includes("approved")) {
-      type = "success"
-    } else if (n.title.toLowerCase().includes("deleted") || n.title.toLowerCase().includes("suspended") || n.title.toLowerCase().includes("rejected")) {
-      type = "warning"
-    }
-    return {
-      id: n.id,
-      title: n.title,
-      time: n.time,
-      type
-    }
-  })
+  const recentActivities = (dashboardStats?.recent_activities && dashboardStats.recent_activities.length > 0)
+    ? dashboardStats.recent_activities
+    : notifications.slice(0, 5).map((n) => {
+        let type = "info"
+        if (n.title.toLowerCase().includes("created") || n.title.toLowerCase().includes("converted") || n.title.toLowerCase().includes("approved")) {
+          type = "success"
+        } else if (n.title.toLowerCase().includes("deleted") || n.title.toLowerCase().includes("suspended") || n.title.toLowerCase().includes("rejected")) {
+          type = "warning"
+        }
+        return {
+          id: n.id,
+          title: n.title,
+          time: n.time,
+          type
+        }
+      })
 
-  // Limit recent users to the top 4 users
-  const recentUsers = users.slice(0, 4).map((u) => ({
-    name: u.organization,
-    email: u.email,
-    plan: u.plan,
-    status: u.status
-  }))
+  const recentUsers = (dashboardStats?.recent_users && dashboardStats.recent_users.length > 0)
+    ? dashboardStats.recent_users.slice(0, 5).map((u) => ({
+        name: u.organization || u.name,
+        email: u.email,
+        plan: u.plan || "Starter",
+        status: u.status || "Active"
+      }))
+    : users.slice(0, 4).map((u) => ({
+        name: u.organization,
+        email: u.email,
+        plan: u.plan,
+        status: u.status
+      }))
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 mt-4">

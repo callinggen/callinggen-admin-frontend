@@ -1,7 +1,16 @@
 "use client"
 
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import type { User, Agent } from "@/components/UserDetailsDrawer"
+import { 
+  fetchDashboardStats, 
+  fetchAdminUsers, 
+  createAdminUser, 
+  updateAdminUser, 
+  deleteAdminUser, 
+  DashboardStats,
+  BackendUser 
+} from "@/lib/api"
 
 export type Notification = {
   id: string
@@ -37,9 +46,11 @@ export type DemoUser = {
 
 interface MockDataContextType {
   users: User[]
-  addUser: (user: User) => void
-  updateUser: (id: string, data: Partial<User>) => void
-  deleteUser: (id: string) => void
+  dashboardStats: DashboardStats | null
+  refreshData: () => Promise<void>
+  addUser: (user: User) => Promise<void>
+  updateUser: (id: string, data: Partial<User>) => Promise<void>
+  deleteUser: (id: string) => Promise<void>
   notifications: Notification[]
   markAllNotificationsRead: () => void
   pricingRequests: PricingRequest[]
@@ -116,27 +127,101 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
 
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined)
 
+function mapBackendUserToFrontend(u: BackendUser): User {
+  const planName = u.plan && ["Starter", "Standard", "Pro", "Optional", "Demo"].includes(u.plan)
+    ? (u.plan as User["plan"])
+    : "Starter"
+
+  return {
+    id: u.id.startsWith("USR-") ? u.id : `USR-${u.id}`,
+    name: u.name || "User Account",
+    email: u.email || "",
+    mobile: u.mobile || u.phone || "",
+    phone: u.phone || u.mobile || "",
+    password: "password123",
+    industry: "Calling Platform",
+    provider: "Vobiz",
+    organization: u.organization || u.name || "CallingGen",
+    plan: planName,
+    credits: u.credits ?? 2000,
+    apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
+    type: u.type || ((u.credits !== undefined && u.credits <= 50) || planName === "Demo" ? "Demo" : "Regular"),
+    status: u.status || "Active",
+    createdAt: u.createdAt || new Date().toISOString(),
+    agents: []
+  }
+}
+
 export function MockDataProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<User[]>(INITIAL_USERS)
   const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS)
   const [pricingRequests, setPricingRequests] = useState<PricingRequest[]>(INITIAL_PRICING_REQUESTS)
   const [demoUsers, setDemoUsers] = useState<DemoUser[]>(INITIAL_DEMO_USERS)
+  const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
 
-  // Load from localStorage on client side mount
+  const refreshData = useCallback(async () => {
+    try {
+      const stats = await fetchDashboardStats()
+      if (stats) {
+        setDashboardStats(stats)
+        if (stats.recent_activities && stats.recent_activities.length > 0) {
+          const mappedNotifications: Notification[] = stats.recent_activities.map(act => ({
+            id: act.id,
+            title: act.title,
+            time: act.time,
+            read: false
+          }))
+          setNotifications(prev => {
+            const combined = [...mappedNotifications, ...prev]
+            const uniqueMap = new Map()
+            combined.forEach(item => uniqueMap.set(item.id, item))
+            return Array.from(uniqueMap.values())
+          })
+        }
+      }
+
+      const remoteUsers = await fetchAdminUsers()
+      if (remoteUsers && remoteUsers.length > 0) {
+        const mappedUsers = remoteUsers.map(mapBackendUserToFrontend)
+        setUsers(mappedUsers)
+      }
+    } catch (err) {
+      console.warn("Could not sync live data from backend, falling back to local state:", err)
+    }
+  }, [])
+
+  // Load from localStorage & fetch backend on mount
   useEffect(() => {
     const localUsers = localStorage.getItem("callinggen_users")
     const localNotifications = localStorage.getItem("callinggen_notifications")
     const localPricing = localStorage.getItem("callinggen_pricing_requests")
     const localDemos = localStorage.getItem("callinggen_demo_users")
 
-    if (localUsers) setUsers(JSON.parse(localUsers))
-    if (localNotifications) setNotifications(JSON.parse(localNotifications))
-    if (localPricing) setPricingRequests(JSON.parse(localPricing))
-    if (localDemos) setDemoUsers(JSON.parse(localDemos))
+    if (localUsers) {
+      try { setUsers(JSON.parse(localUsers)) } catch {}
+    }
+    if (localNotifications) {
+      try { setNotifications(JSON.parse(localNotifications)) } catch {}
+    }
+    if (localPricing) {
+      try { setPricingRequests(JSON.parse(localPricing)) } catch {}
+    }
+    if (localDemos) {
+      try { setDemoUsers(JSON.parse(localDemos)) } catch {}
+    }
 
     setIsHydrated(true)
-  }, [])
+    refreshData()
+  }, [refreshData])
+
+  // Periodic refresh every 20s to keep backend state live
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshData()
+    }, 20000)
+    return () => clearInterval(interval)
+  }, [refreshData])
 
   // Write changes to localStorage
   useEffect(() => {
@@ -175,21 +260,52 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
     ])
   }
 
-  const addUser = (user: User) => {
-    setUsers(prev => [user, ...prev])
-    createNotification(`New user account created: ${user.organization}`)
+  const addUser = async (newUser: User) => {
+    setUsers(prev => [newUser, ...prev])
+    createNotification(`New user account created: ${newUser.organization || newUser.name}`)
+
+    try {
+      await createAdminUser({
+        full_name: newUser.name,
+        email: newUser.email,
+        phone_number: newUser.phone
+      })
+      await refreshData()
+    } catch (e) {
+      console.warn("Backend user creation synced locally only:", e)
+    }
   }
 
-  const updateUser = (id: string, data: Partial<User>) => {
+  const updateUser = async (id: string, data: Partial<User>) => {
     setUsers(prev => prev.map(u => u.id === id ? { ...u, ...data } : u))
-    const orgName = data.organization || id
+    const orgName = data.organization || data.name || id
     createNotification(`User account details updated: ${orgName}`)
+
+    try {
+      await updateAdminUser(id, {
+        full_name: data.name,
+        email: data.email,
+        phone_number: data.phone || data.mobile,
+        credits: data.credits,
+        subscription_plan: data.plan
+      })
+      await refreshData()
+    } catch (e) {
+      console.warn("Backend user update synced locally only:", e)
+    }
   }
 
-  const deleteUser = (id: string) => {
+  const deleteUser = async (id: string) => {
     const userToDelete = users.find(u => u.id === id)
     setUsers(prev => prev.filter(u => u.id !== id))
     createNotification(`User deleted: ${userToDelete?.organization || id}`)
+
+    try {
+      await deleteAdminUser(id)
+      await refreshData()
+    } catch (e) {
+      console.warn("Backend user deletion synced locally only:", e)
+    }
   }
 
   const markAllNotificationsRead = () => setNotifications(prev => prev.map(n => ({ ...n, read: true })))
@@ -233,7 +349,7 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
       email: demoUser.email,
       mobile: demoUser.phone,
       phone: demoUser.phone,
-      password: "password123", // Dummy password
+      password: "password123",
       industry: "General",
       provider: "Vobiz",
       organization: demoUser.company,
@@ -246,14 +362,14 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
       agents: []
     }
 
-    setUsers(prev => [newUser, ...prev])
+    addUser(newUser)
     setDemoUsers(prev => prev.filter(u => u.id !== demoUserId))
     createNotification(`Converted Demo Lead ${demoUser.name} to ${plan} Plan`)
   }
 
   return (
     <MockDataContext.Provider value={{
-      users, addUser, updateUser, deleteUser,
+      users, dashboardStats, refreshData, addUser, updateUser, deleteUser,
       notifications, markAllNotificationsRead,
       pricingRequests, updatePricingRequest,
       demoUsers, addDemoUser, updateDemoUser, deleteDemoUser, convertDemoToUser,
@@ -268,4 +384,3 @@ export function useMockData() {
   if (!context) throw new Error("useMockData must be used within a MockDataProvider")
   return context
 }
-
