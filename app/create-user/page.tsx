@@ -100,21 +100,29 @@ export default function CreateUserPage() {
       const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
       // Persist user to backend database
-      const res = await fetch(`${apiBase}/api/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          full_name: data.name,
-          email: data.email,
-          phone_number: data.mobile || null,
-          password: data.password,
-        }),
-      });
+      try {
+        const res = await fetch(`${apiBase}/api/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            full_name: data.name,
+            email: data.email,
+            phone_number: data.mobile || null,
+            password: data.password,
+            subscription_plan: data.plan,
+            credits: data.credits,
+          }),
+        });
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        const errorMessage = errData.detail || errData.message || "Failed to create user in database";
-        toast.error(`Backend Error: ${errorMessage}`);
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.warn("Backend creation response:", errData);
+          toast.error(errData.detail || "Failed to create user in backend");
+          return; // Stop execution, do not proceed to mock UI state
+        }
+      } catch (backendErr) {
+        console.warn("Backend API request failed:", backendErr);
+        toast.error("Network error while connecting to backend");
         return;
       }
 
