@@ -1,17 +1,14 @@
 "use client"
 
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { useForm, useFieldArray } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { 
-  Building2, User as UserIcon, Mail, Phone, Lock, 
-  CreditCard, Smartphone, Server, Bot, Languages, 
-  Mic, FileText, Upload, Plus, Trash2, ChevronRight, Check
-} from "lucide-react"
+import { Building2, Mail, Smartphone, Lock, User as UserIcon, CreditCard, Server, Bot, Languages, Mic, FileText, ChevronRight, Check, Plus, Trash2, Phone, ChevronDown } from "lucide-react"
+import { AGENT_TEMPLATES } from "@/lib/agent-templates"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -49,6 +46,7 @@ type UserFormValues = z.infer<typeof userFormSchema>
 export default function CreateUserPage() {
   const router = useRouter()
   const { addUser, addDemoUser, users } = useMockData()
+  const [showTemplateDropdown, setShowTemplateDropdown] = useState(false)
 
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -111,6 +109,12 @@ export default function CreateUserPage() {
             password: data.password,
             subscription_plan: data.plan,
             credits: data.credits,
+            agents: data.agents.map(a => ({
+              name: a.name,
+              language: a.language,
+              voice: a.voice,
+              script: a.script
+            })),
           }),
         });
 
@@ -344,16 +348,55 @@ export default function CreateUserPage() {
                 </CardTitle>
                 <CardDescription className="mt-2 text-sm">Set up the initial AI calling agents for this user.</CardDescription>
               </div>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => append({ 
-                  id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Female 1", script: "" 
-                })}
-                className="gap-2 rounded-xl"
-              >
-                <Plus className="h-4 w-4" /> Add Agent
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => append({ 
+                    id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Female 1", script: "" 
+                  })}
+                  className="gap-2 rounded-xl"
+                >
+                  <Plus className="h-4 w-4" /> Add Custom Agent
+                </Button>
+
+                <div className="relative">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
+                    className="gap-2 rounded-xl w-full sm:w-auto"
+                  >
+                    <Bot className="h-4 w-4" /> Add from Template
+                    <ChevronDown className={`h-4 w-4 transition-transform ${showTemplateDropdown ? "rotate-180" : ""}`} />
+                  </Button>
+                  
+                  {showTemplateDropdown && (
+                    <div className="absolute right-0 mt-1 w-56 z-50 rounded-xl border border-border bg-background shadow-lg overflow-hidden">
+                      {AGENT_TEMPLATES.map((template, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0"
+                          onClick={() => {
+                            append({
+                              id: `AGT-${Math.floor(Math.random() * 10000)}`,
+                              name: template.name,
+                              language: template.language,
+                              voice: template.voice,
+                              script: template.script
+                            })
+                            setShowTemplateDropdown(false)
+                          }}
+                        >
+                          <div className="font-medium">{template.name}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5 truncate">{template.script.substring(0, 30)}...</div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
             
             <CardContent className="p-6">
