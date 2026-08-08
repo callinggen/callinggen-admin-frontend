@@ -61,7 +61,20 @@ export async function fetchAdminUsers(): Promise<BackendUser[] | null> {
   }
 }
 
-export async function createAdminUser(data: { full_name: string; email: string; phone_number?: string }): Promise<any> {
+export async function createAdminUser(data: {
+  full_name: string;
+  email: string;
+  phone_number?: string;
+  password?: string;
+  company_name?: string;
+  industry?: string;
+  subscription_plan?: string;
+  credits?: number;
+  agent_name?: string;
+  agent_language?: string;
+  agent_voice?: string;
+  agent_script?: string;
+}): Promise<any> {
   const res = await fetch(`${API_BASE}/api/admin/users`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

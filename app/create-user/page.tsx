@@ -97,42 +97,12 @@ export default function CreateUserPage() {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-      // Persist user to backend database
-      try {
-        const res = await fetch(`${apiBase}/api/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            full_name: data.name,
-            email: data.email,
-            phone_number: data.mobile || null,
-            password: data.password,
-            subscription_plan: data.plan,
-            credits: data.credits,
-          }),
-        });
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          console.warn("Backend creation response:", errData);
-          toast.error(errData.detail || "Failed to create user in backend");
-          return; // Stop execution, do not proceed to mock UI state
-        }
-      } catch (backendErr) {
-        console.warn("Backend API request failed:", backendErr);
-        toast.error("Network error while connecting to backend");
-        return;
-      }
-
-      // Add to mock state for admin UI consistency
-      addUser({
+      await addUser({
         id: `USR-${1000 + users.length + 1}`,
         name: data.name,
         email: data.email,
         mobile: data.mobile,
-        phone: data.phones.map(p => `${p.number} (${p.provider})`).join(", "),
+        phone: data.phones[0]?.number || data.mobile,
         password: data.password,
         industry: data.industry,
         provider: data.phones[0]?.provider || "Vobiz",
@@ -152,9 +122,9 @@ export default function CreateUserPage() {
       })
       toast.success(data.plan === "Demo" ? "Demo user created!" : "User created!")
       router.push(data.plan === "Demo" ? "/demo" : "/users")
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Network error while connecting to backend database");
+      toast.error(error?.message || "Error creating user account");
     }
   }
 

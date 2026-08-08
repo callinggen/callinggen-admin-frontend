@@ -265,10 +265,20 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
     createNotification(`New user account created: ${newUser.organization || newUser.name}`)
 
     try {
+      const primaryAgent = newUser.agents?.[0]
       await createAdminUser({
         full_name: newUser.name,
         email: newUser.email,
-        phone_number: newUser.phone
+        phone_number: newUser.mobile || newUser.phone,
+        password: newUser.password,
+        company_name: newUser.organization,
+        industry: newUser.industry,
+        subscription_plan: newUser.plan,
+        credits: newUser.credits,
+        agent_name: primaryAgent?.name,
+        agent_language: primaryAgent?.language,
+        agent_voice: primaryAgent?.voice,
+        agent_script: primaryAgent?.script,
       })
       await refreshData()
     } catch (e) {
