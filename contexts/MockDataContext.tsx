@@ -65,65 +65,10 @@ interface MockDataContextType {
 const NAMES = ["Oliver Bennett", "Sophia Chen", "Marcus Rivera", "Aisha Patel", "Liam Foster", "Emma Nguyen", "James Okafor", "Mia Schmidt", "Noah Williams", "Zara Hassan", "Ethan Park", "Isabella Torres"]
 const ORGS = ["Acme Corp", "TechFlow", "Stark Industries", "Wayne Ent", "Globex", "Initech", "Umbrella Corp", "Cyberdyne", "Oscorp", "Weyland Corp"]
 
-const INITIAL_USERS: User[] = Array.from({ length: 45 }).map((_, i) => ({
-  id: `USR-${1000 + i}`,
-  name: NAMES[i % NAMES.length],
-  email: `user${i}@example.com`,
-  mobile: `+1 (${String(400 + i).padStart(3, "0")}) 555-0${String(100 + i).padStart(3, "0")}`,
-  phone: `+1 (${String(400 + i).padStart(3, "0")}) 555-0${String(100 + i).padStart(3, "0")}`,
-  password: "password123",
-  industry: "Technology",
-  provider: "Vobiz",
-  organization: ["Acme Corp", "TechFlow", "Stark Industries", "Wayne Ent", "Globex"][i % 5],
-  plan: (["Starter", "Standard", "Pro", "Optional"] as const)[i % 4],
-  credits: Math.floor(Math.random() * 10000) + (i % 3 === 2 ? 50000 : 0),
-  apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}${Math.random().toString(36).substring(2, 15)}`,
-  type: i % 7 === 0 ? "Demo" : "Regular",
-  status: (["Active", "Active", "Active", "Inactive", "Suspended"] as const)[i % 5],
-  createdAt: new Date(Date.now() - Math.random() * 10000000000).toISOString(),
-  agents: Array.from({ length: (i % 4) }).map((_, j) => ({
-    id: `AGT-${Math.floor(Math.random() * 10000)}`,
-    name: `Support Bot ${j + 1}`,
-    language: "English",
-    voice: "Female 1",
-    script: "Hello, how can I help you?",
-    knowledgebaseDoc: "",
-    status: ["Active", "Inactive", "Error"][j % 3] as any
-  }))
-}))
-
-const INITIAL_PRICING_REQUESTS: PricingRequest[] = Array.from({ length: 20 }).map((_, i) => ({
-  id: `PR-${2000 + i}`,
-  name: NAMES[i % NAMES.length],
-  organization: ORGS[i % ORGS.length],
-  email: `contact${i}@${ORGS[i % ORGS.length].toLowerCase().replace(/\s/g, "")}.com`,
-  creditsSelected: [10000, 25000, 50000, 100000, 250000][i % 5],
-  type: (["Monthly", "Annual", "Custom"] as const)[i % 3],
-  status: (["Pending", "Pending", "Approved", "Rejected", "Pending"] as const)[i % 5],
-  message: `We are interested in the ${["Pro", "Enterprise", "Custom"][i % 3]} plan for our team of ${(i + 1) * 5} members. Please let us know the best pricing options available.`,
-  requestedAt: new Date(Date.now() - i * 86400000 * 2).toISOString(),
-}))
-
-const INITIAL_DEMO_USERS: DemoUser[] = Array.from({ length: 18 }).map((_, i) => ({
-  id: `DMO-${3000 + i}`,
-  name: NAMES[(i + 3) % NAMES.length],
-  email: `demo${i}@${ORGS[(i + 2) % ORGS.length].toLowerCase().replace(/\s/g, "")}.com`,
-  phone: `+1 (${String(400 + i).padStart(3, "0")}) 555-0${String(100 + i).padStart(3, "0")}`,
-  company: ORGS[(i + 2) % ORGS.length],
-  role: ["CEO", "CTO", "VP Sales", "Product Manager", "Head of Ops", "Founder"][i % 6],
-  requestDate: new Date(Date.now() - i * 86400000 * 3).toISOString(),
-  status: (["Pending", "Demo Scheduled", "Completed", "Converted", "Expired", "Pending", "Demo Scheduled"] as const)[i % 7],
-  notes: i % 3 === 0 ? `Interested in AI calling for their ${["sales", "support", "outreach"][i % 3]} team. High priority lead.` : "",
-  scheduledAt: i % 3 === 1 ? new Date(Date.now() + i * 86400000).toISOString() : undefined,
-}))
-
-const INITIAL_NOTIFICATIONS: Notification[] = [
-  { id: "1", title: "New User Created", time: "2 mins ago", read: false },
-  { id: "2", title: "Pricing Request Received", time: "1 hr ago", read: false },
-  { id: "3", title: "Credits Updated", time: "3 hrs ago", read: false },
-  { id: "4", title: "Demo Scheduled", time: "5 hrs ago", read: false },
-  { id: "5", title: "API Key Generated", time: "1 day ago", read: false },
-]
+const INITIAL_USERS: User[] = []
+const INITIAL_PRICING_REQUESTS: PricingRequest[] = []
+const INITIAL_DEMO_USERS: DemoUser[] = []
+const INITIAL_NOTIFICATIONS: Notification[] = []
 
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined)
 
@@ -144,7 +89,7 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     organization: u.organization || u.name || "CallingGen",
     plan: planName,
     credits: u.credits ?? 2000,
-    apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
+    apiKey: `cg_live_${(u.id || "").substring(0, 8)}`,
     type: u.type || ((u.credits !== undefined && u.credits <= 50) || planName === "Demo" ? "Demo" : "Regular"),
     status: u.status || "Active",
     createdAt: u.createdAt || new Date().toISOString(),
@@ -153,10 +98,10 @@ function mapBackendUserToFrontend(u: BackendUser): User {
 }
 
 export function MockDataProvider({ children }: { children: React.ReactNode }) {
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS)
-  const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS)
-  const [pricingRequests, setPricingRequests] = useState<PricingRequest[]>(INITIAL_PRICING_REQUESTS)
-  const [demoUsers, setDemoUsers] = useState<DemoUser[]>(INITIAL_DEMO_USERS)
+  const [users, setUsers] = useState<User[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [pricingRequests, setPricingRequests] = useState<PricingRequest[]>([])
+  const [demoUsers, setDemoUsers] = useState<DemoUser[]>([])
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
 
@@ -182,25 +127,21 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
       }
 
       const remoteUsers = await fetchAdminUsers()
-      if (remoteUsers && remoteUsers.length > 0) {
+      if (remoteUsers && Array.isArray(remoteUsers)) {
         const mappedUsers = remoteUsers.map(mapBackendUserToFrontend)
         setUsers(mappedUsers)
       }
     } catch (err) {
-      console.warn("Could not sync live data from backend, falling back to local state:", err)
+      console.warn("Could not sync live data from backend:", err)
     }
   }, [])
 
   // Load from localStorage & fetch backend on mount
   useEffect(() => {
-    const localUsers = localStorage.getItem("callinggen_users")
     const localNotifications = localStorage.getItem("callinggen_notifications")
     const localPricing = localStorage.getItem("callinggen_pricing_requests")
     const localDemos = localStorage.getItem("callinggen_demo_users")
 
-    if (localUsers) {
-      try { setUsers(JSON.parse(localUsers)) } catch {}
-    }
     if (localNotifications) {
       try { setNotifications(JSON.parse(localNotifications)) } catch {}
     }

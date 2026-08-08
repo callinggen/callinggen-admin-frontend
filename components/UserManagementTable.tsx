@@ -197,7 +197,7 @@ export function UserManagementTable({ filterType }: { filterType?: "Regular" | "
         {/* Pagination */}
         <div className="flex items-center justify-between border-t px-6 py-3 bg-muted/20">
           <p className="text-sm text-muted-foreground">
-            Showing <span className="font-medium text-foreground">{table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span> to <span className="font-medium text-foreground">{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}</span> of <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span> users
+            Showing <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length === 0 ? 0 : table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}</span> to <span className="font-medium text-foreground">{Math.min((table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize, table.getFilteredRowModel().rows.length)}</span> of <span className="font-medium text-foreground">{table.getFilteredRowModel().rows.length}</span> users
           </p>
           <div className="flex items-center gap-2">
             <Button
