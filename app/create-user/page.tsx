@@ -26,7 +26,7 @@ const userFormSchema = z.object({
   mobile: z.string().min(1, "Mobile number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password is required"),
-  plan: z.enum(["", "Demo", "Starter", "Standard", "Pro", "Optional"]).refine(val => val !== "", "Plan is required"),
+  plan: z.enum(["Starter", "Standard", "Pro", "Optional", "Demo"]),
   credits: z.number().min(0, "Credits cannot be negative"),
   phones: z.array(z.object({
     number: z.string().min(1, "Phone number is required"),
@@ -60,7 +60,7 @@ export default function CreateUserPage() {
       mobile: "",
       password: "",
       confirmPassword: "",
-      plan: "",
+      plan: "Starter",
       credits: 0,
       phones: [{ number: "", provider: "Vobiz" }],
       agents: [{

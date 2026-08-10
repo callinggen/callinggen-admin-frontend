@@ -37,11 +37,10 @@ export async function fetchDashboardStats(): Promise<DashboardStats | null> {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch (error) {
-    console.warn("Failed to fetch dashboard stats from backend:", error)
+    }).catch(() => null)
+    if (!res || !res.ok) return null
+    return await res.json().catch(() => null)
+  } catch {
     return null
   }
 }
@@ -52,11 +51,10 @@ export async function fetchAdminUsers(): Promise<BackendUser[] | null> {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch (error) {
-    console.warn("Failed to fetch admin users from backend:", error)
+    }).catch(() => null)
+    if (!res || !res.ok) return null
+    return await res.json().catch(() => null)
+  } catch {
     return null
   }
 }
