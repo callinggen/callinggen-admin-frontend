@@ -72,6 +72,7 @@ export async function createAdminUser(data: {
   agent_language?: string;
   agent_voice?: string;
   agent_script?: string;
+  agents?: Array<{ name: string; language: string; voice: string; script: string }>;
 }): Promise<any> {
   const res = await fetch(`${API_BASE}/api/admin/users`, {
     method: "POST",

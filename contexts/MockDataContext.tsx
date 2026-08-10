@@ -286,6 +286,12 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
         agent_language: primaryAgent?.language,
         agent_voice: primaryAgent?.voice,
         agent_script: primaryAgent?.script,
+        agents: newUser.agents?.map(a => ({
+          name: a.name,
+          language: a.language,
+          voice: a.voice,
+          script: a.script,
+        })),
       })
       await refreshData()
     } catch (e) {
