@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { AuthProvider } from "@/contexts/AuthContext";
 import { MockDataProvider } from "@/contexts/MockDataContext";
 import { Navbar } from "@/components/Navbar";
 import { Sidebar } from "@/components/Sidebar";
@@ -30,18 +31,20 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground transition-colors duration-300" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-          <MockDataProvider>
-            <div className="flex flex-col h-screen bg-background overflow-hidden">
-              <Navbar />
-              <div className="flex flex-1 overflow-hidden">
-                <Sidebar />
-                <main className="flex-1 overflow-y-auto p-4 sm:p-8">
-                  <div className="mx-auto max-w-7xl">{children}</div>
-                </main>
+          <AuthProvider>
+            <MockDataProvider>
+              <div className="flex flex-col h-screen bg-background overflow-hidden">
+                <Navbar />
+                <div className="flex flex-1 overflow-hidden">
+                  <Sidebar />
+                  <main className="flex-1 overflow-y-auto p-4 sm:p-8">
+                    <div className="mx-auto max-w-7xl">{children}</div>
+                  </main>
+                </div>
               </div>
-            </div>
-            <Toaster richColors position="top-right" />
-          </MockDataProvider>
+              <Toaster richColors position="top-right" />
+            </MockDataProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
