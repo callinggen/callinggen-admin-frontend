@@ -85,12 +85,13 @@ export async function createAdminUser(data: {
   return res.json()
 }
 
-export async function updateAdminUser(userId: string, data: { full_name?: string; email?: string; phone_number?: string; credits?: number; subscription_plan?: string }): Promise<any> {
+export async function updateAdminUser(userId: string, data: { full_name?: string; email?: string; phone_number?: string; credits?: number; subscription_plan?: string; status?: string }): Promise<any> {
   const res = await fetch(`${API_BASE}/api/admin/users/${userId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Failed to update user" }))
     throw new Error(err.detail || "Failed to update user")
