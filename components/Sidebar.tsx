@@ -20,6 +20,7 @@ const navItems = [
   { name: "User Management", href: "/users", icon: Users },
   { name: "Create User", href: "/create-user", icon: UserPlus },
   { name: "Demo Users", href: "/demo", icon: UserSquare2 },
+  { name: "Test Users", href: "/test-users", icon: Users },
 ]
 
 export function Sidebar() {
