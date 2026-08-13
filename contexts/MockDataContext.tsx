@@ -92,7 +92,7 @@ const INITIAL_USERS: User[] = Array.from({ length: 45 }).map((_, i) => ({
     id: `AGT-${1000 + i * 10 + j}`,
     name: `Support Bot ${j + 1}`,
     language: "English",
-    voice: "Female 1",
+    voice: "Meera",
     script: "Hello, how can I help you?",
     knowledgebaseDoc: "",
     status: ["Active", "Inactive", "Error"][j % 3] as any

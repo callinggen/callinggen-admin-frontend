@@ -67,7 +67,7 @@ export default function CreateUserPage() {
         id: `AGT-${Math.floor(Math.random() * 10000)}`,
         name: "",
         language: "English",
-        voice: "Female 1",
+        voice: "Meera",
         script: ""
       }]
     }
@@ -318,7 +318,7 @@ export default function CreateUserPage() {
                 type="button" 
                 variant="outline" 
                 onClick={() => append({ 
-                  id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Female 1", script: "" 
+                  id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Meera", script: "" 
                 })}
                 className="gap-2 rounded-xl"
               >
