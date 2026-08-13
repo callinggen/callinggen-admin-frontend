@@ -15,7 +15,7 @@ export type Agent = {
   language: string
   voice: string
   script: string
-  knowledgebaseDoc: string
+  knowledgebaseDoc?: string
   status: "Active" | "Inactive" | "Error"
 }
 

@@ -155,7 +155,15 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     type: u.type || ((u.credits !== undefined && u.credits <= 50) || planName === "Demo" ? "Demo" : "Regular"),
     status: u.status || "Active",
     createdAt: u.createdAt || new Date().toISOString(),
-    agents: []
+    agents: (u.agents || []).map(a => ({
+      id: a.id || `AGT-${Math.floor(Math.random() * 1000)}`,
+      name: a.name,
+      language: a.language || "English",
+      voice: a.voice || "Meera",
+      script: a.script || "",
+      knowledgebaseDoc: "",
+      status: "Active" as const
+    }))
   }
 }
 

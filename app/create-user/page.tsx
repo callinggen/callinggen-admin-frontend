@@ -371,10 +371,12 @@ export default function CreateUserPage() {
                         </SelectGroup>
                         
                         <SelectGroup label="Voice Profile" icon={Mic} {...form.register(`agents.${index}.voice`)} error={errors.agents?.[index]?.voice?.message}>
-                          <option value="Female 1">Female 1 (Professional)</option>
-                          <option value="Female 2">Female 2 (Friendly)</option>
-                          <option value="Male 1">Male 1 (Deep)</option>
-                          <option value="Male 2">Male 2 (Energetic)</option>
+                          <option value="Meera">Meera (Female)</option>
+                          <option value="Raj">Raj (Male)</option>
+                          <option value="Manisha">Manisha (Female)</option>
+                          <option value="Karun">Karun (Male)</option>
+                          <option value="Vidya">Vidya (Female)</option>
+                          <option value="Hitesh">Hitesh (Male)</option>
                         </SelectGroup>
 
                         <div className="md:col-span-3 space-y-2">

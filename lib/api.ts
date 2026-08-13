@@ -14,6 +14,7 @@ export interface BackendUser {
   status?: "Active" | "Inactive" | "Suspended"
   is_admin?: boolean
   createdAt?: string
+  agents?: Array<{ id: string; name: string; language: string; voice: string; script: string; status?: string }>
 }
 
 export interface DashboardStats {
