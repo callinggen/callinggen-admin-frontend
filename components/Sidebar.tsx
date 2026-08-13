@@ -10,7 +10,8 @@ import {
   UserPlus,
   UserSquare2,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  CalendarDays
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -21,6 +22,7 @@ const navItems = [
   { name: "Create User", href: "/create-user", icon: UserPlus },
   { name: "Demo Users", href: "/demo", icon: UserSquare2 },
   { name: "Test Users", href: "/test-users", icon: Users },
+  { name: "Contact form users", href: "/contact-form-users", icon: CalendarDays },
 ]
 
 export function Sidebar() {
