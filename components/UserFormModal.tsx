@@ -20,6 +20,9 @@ const userSchema = z.object({
   agents: z.array(z.object({
     id: z.string().min(1, "Agent ID is required"),
     name: z.string().min(1, "Agent Name is required"),
+    language: z.string().optional(),
+    voice: z.string().optional(),
+    script: z.string().optional(),
     status: z.enum(["Active", "Inactive", "Error"])
   }))
 })
@@ -187,7 +190,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
           <div className="space-y-4 pt-4 border-t">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium leading-none">CallingGen Agents</label>
-              <Button type="button" variant="secondary" size="sm" className="h-8 gap-1" onClick={() => append({ id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", status: "Active" })}>
+              <Button type="button" variant="secondary" size="sm" className="h-8 gap-1" onClick={() => append({ id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Meera", script: "", status: "Active" })}>
                 <Plus className="h-3.5 w-3.5" />
                 Add Agent
               </Button>
@@ -198,22 +201,59 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
                 No agents configured yet.
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {agents.map((agent, index) => (
-                  <div key={agent.id} className="flex items-start gap-3 p-3 rounded-lg border bg-muted/10">
-                    <div className="grid grid-cols-2 gap-3 flex-1">
+                  <div key={agent.id} className="p-3 rounded-lg border bg-muted/10 space-y-3 relative">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">Agent #{index + 1} ({agent.id})</span>
+                      <Button type="button" variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(index)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground">Agent Name</label>
-                        <Input {...form.register(`agents.${index}.name`)} error={form.formState.errors.agents?.[index]?.name?.message} placeholder="e.g. Sales Bot" />
+                        <label className="text-xs font-medium text-muted-foreground">Agent Name</label>
+                        <Input {...form.register(`agents.${index}.name`)} error={form.formState.errors.agents?.[index]?.name?.message} placeholder="e.g. Sales Assistant" />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs text-muted-foreground">Agent ID</label>
-                        <Input {...form.register(`agents.${index}.id`)} error={form.formState.errors.agents?.[index]?.id?.message} readOnly className="bg-muted/30" />
+                        <label className="text-xs font-medium text-muted-foreground">Language</label>
+                        <select
+                          {...form.register(`agents.${index}.language`)}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <option value="English">English</option>
+                          <option value="Spanish">Spanish</option>
+                          <option value="French">French</option>
+                          <option value="German">German</option>
+                          <option value="Hindi">Hindi</option>
+                        </select>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-muted-foreground">Voice Profile</label>
+                        <select
+                          {...form.register(`agents.${index}.voice`)}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <option value="Meera">Meera (Female)</option>
+                          <option value="Raj">Raj (Male)</option>
+                          <option value="Manisha">Manisha (Female)</option>
+                          <option value="Karun">Karun (Male)</option>
+                          <option value="Vidya">Vidya (Female)</option>
+                          <option value="Hitesh">Hitesh (Male)</option>
+                        </select>
                       </div>
                     </div>
-                    <Button type="button" variant="ghost" size="icon" className="mt-5 text-destructive hover:bg-destructive/10 hover:text-destructive" onClick={() => remove(index)}>
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-muted-foreground">Agent Script / System Prompt</label>
+                      <textarea
+                        {...form.register(`agents.${index}.script`)}
+                        rows={3}
+                        placeholder="Enter the system prompt / behavior instructions for this agent..."
+                        className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-none"
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

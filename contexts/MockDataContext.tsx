@@ -318,7 +318,13 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
         email: data.email,
         phone_number: data.phone || data.mobile,
         credits: data.credits,
-        subscription_plan: data.plan
+        subscription_plan: data.plan,
+        agents: data.agents?.map(a => ({
+          name: a.name,
+          language: a.language || "English",
+          voice: a.voice || "Meera",
+          script: a.script || "",
+        }))
       })
       await refreshData()
     } catch (e) {
