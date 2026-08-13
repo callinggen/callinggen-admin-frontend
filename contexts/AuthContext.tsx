@@ -41,6 +41,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     authService.clearSession()
     setUser(null)
+    if (typeof window !== "undefined") {
+      window.location.href = "/login"
+    }
   }
 
   const value = useMemo<AuthContextValue>(
