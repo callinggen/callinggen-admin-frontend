@@ -151,7 +151,7 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     organization: u.organization || u.name || "CallingGen",
     plan: planName,
     credits: u.credits ?? 2000,
-    apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
+    apiKey: `cg_live_${(u.id || "").substring(0, 8)}`,
     type: u.type || ((u.credits !== undefined && u.credits <= 50) || planName === "Demo" ? "Demo" : "Regular"),
     status: u.status || "Active",
     createdAt: u.createdAt || new Date().toISOString(),
@@ -160,10 +160,10 @@ function mapBackendUserToFrontend(u: BackendUser): User {
 }
 
 export function MockDataProvider({ children }: { children: React.ReactNode }) {
-  const [users, setUsers] = useState<User[]>(INITIAL_USERS)
-  const [notifications, setNotifications] = useState<Notification[]>(INITIAL_NOTIFICATIONS)
-  const [pricingRequests, setPricingRequests] = useState<PricingRequest[]>(INITIAL_PRICING_REQUESTS)
-  const [demoUsers, setDemoUsers] = useState<DemoUser[]>(INITIAL_DEMO_USERS)
+  const [users, setUsers] = useState<User[]>([])
+  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [pricingRequests, setPricingRequests] = useState<PricingRequest[]>([])
+  const [demoUsers, setDemoUsers] = useState<DemoUser[]>([])
   const [dashboardStats, setDashboardStats] = useState<DashboardStats | null>(null)
   const [isHydrated, setIsHydrated] = useState(false)
 
@@ -189,25 +189,21 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
       }
 
       const remoteUsers = await fetchAdminUsers()
-      if (remoteUsers && remoteUsers.length > 0) {
+      if (remoteUsers && Array.isArray(remoteUsers)) {
         const mappedUsers = remoteUsers.map(mapBackendUserToFrontend)
         setUsers(mappedUsers)
       }
     } catch (err) {
-      console.warn("Could not sync live data from backend, falling back to local state:", err)
+      console.warn("Could not sync live data from backend:", err)
     }
   }, [])
 
   // Load from localStorage & fetch backend on mount
   useEffect(() => {
-    const localUsers = localStorage.getItem("callinggen_users")
     const localNotifications = localStorage.getItem("callinggen_notifications")
     const localPricing = localStorage.getItem("callinggen_pricing_requests")
     const localDemos = localStorage.getItem("callinggen_demo_users")
 
-    if (localUsers) {
-      try { setUsers(JSON.parse(localUsers)) } catch {}
-    }
     if (localNotifications) {
       try { setNotifications(JSON.parse(localNotifications)) } catch {}
     }
