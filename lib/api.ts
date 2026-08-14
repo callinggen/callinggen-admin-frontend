@@ -37,11 +37,10 @@ export async function fetchDashboardStats(): Promise<DashboardStats | null> {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch (error) {
-    console.warn("Failed to fetch dashboard stats from backend:", error)
+    }).catch(() => null)
+    if (!res || !res.ok) return null
+    return await res.json().catch(() => null)
+  } catch {
     return null
   }
 }
@@ -52,16 +51,28 @@ export async function fetchAdminUsers(): Promise<BackendUser[] | null> {
       method: "GET",
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
-    })
-    if (!res.ok) return null
-    return await res.json()
-  } catch (error) {
-    console.warn("Failed to fetch admin users from backend:", error)
+    }).catch(() => null)
+    if (!res || !res.ok) return null
+    return await res.json().catch(() => null)
+  } catch {
     return null
   }
 }
 
-export async function createAdminUser(data: { full_name: string; email: string; phone_number?: string }): Promise<any> {
+export async function createAdminUser(data: {
+  full_name: string;
+  email: string;
+  phone_number?: string;
+  password?: string;
+  company_name?: string;
+  industry?: string;
+  subscription_plan?: string;
+  credits?: number;
+  agent_name?: string;
+  agent_language?: string;
+  agent_voice?: string;
+  agent_script?: string;
+}): Promise<any> {
   const res = await fetch(`${API_BASE}/api/admin/users`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -74,12 +85,13 @@ export async function createAdminUser(data: { full_name: string; email: string; 
   return res.json()
 }
 
-export async function updateAdminUser(userId: string, data: { full_name?: string; email?: string; phone_number?: string; credits?: number; subscription_plan?: string }): Promise<any> {
+export async function updateAdminUser(userId: string, data: { full_name?: string; email?: string; phone_number?: string; credits?: number; subscription_plan?: string; status?: string }): Promise<any> {
   const res = await fetch(`${API_BASE}/api/admin/users/${userId}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   })
+
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: "Failed to update user" }))
     throw new Error(err.detail || "Failed to update user")

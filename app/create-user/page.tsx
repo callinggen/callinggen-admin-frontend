@@ -23,7 +23,7 @@ const userFormSchema = z.object({
   mobile: z.string().min(1, "Mobile number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password is required"),
-  plan: z.enum(["", "Demo", "Starter", "Standard", "Pro", "Optional"]).refine(val => val !== "", "Plan is required"),
+  plan: z.enum(["Starter", "Standard", "Pro", "Optional", "Demo"]),
   credits: z.number().min(0, "Credits cannot be negative"),
   phones: z.array(z.object({
     number: z.string().min(1, "Phone number is required"),
@@ -58,14 +58,14 @@ export default function CreateUserPage() {
       mobile: "",
       password: "",
       confirmPassword: "",
-      plan: "",
+      plan: "Starter",
       credits: 0,
       phones: [{ number: "", provider: "Vobiz" }],
       agents: [{
         id: `AGT-${Math.floor(Math.random() * 10000)}`,
         name: "",
         language: "English",
-        voice: "Female 1",
+        voice: "Meera",
         script: ""
       }]
     }
@@ -95,48 +95,12 @@ export default function CreateUserPage() {
 
   const onSubmit = async (data: UserFormValues) => {
     try {
-      const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
-      // Persist user to backend database
-      try {
-        const res = await fetch(`${apiBase}/api/auth/register`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            full_name: data.name,
-            email: data.email,
-            phone_number: data.mobile || null,
-            password: data.password,
-            subscription_plan: data.plan,
-            credits: data.credits,
-            agents: data.agents.map(a => ({
-              name: a.name,
-              language: a.language,
-              voice: a.voice,
-              script: a.script
-            })),
-          }),
-        });
-
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          console.warn("Backend creation response:", errData);
-          toast.error(errData.detail || "Failed to create user in backend");
-          return; // Stop execution, do not proceed to mock UI state
-        }
-      } catch (backendErr) {
-        console.warn("Backend API request failed:", backendErr);
-        toast.error("Network error while connecting to backend");
-        return;
-      }
-
-      // Add to mock state for admin UI consistency
-      addUser({
+      await addUser({
         id: `USR-${1000 + users.length + 1}`,
         name: data.name,
         email: data.email,
         mobile: data.mobile,
-        phone: data.phones.map(p => `${p.number} (${p.provider})`).join(", "),
+        phone: data.phones[0]?.number || data.mobile,
         password: data.password,
         industry: data.industry,
         provider: data.phones[0]?.provider || "Vobiz",
@@ -156,9 +120,9 @@ export default function CreateUserPage() {
       })
       toast.success(data.plan === "Demo" ? "Demo user created!" : "User created!")
       router.push(data.plan === "Demo" ? "/demo" : "/users")
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      toast.error("Network error while connecting to backend database");
+      toast.error(error?.message || "Error creating user account");
     }
   }
 
@@ -348,55 +312,16 @@ export default function CreateUserPage() {
                 </CardTitle>
                 <CardDescription className="mt-2 text-sm">Set up the initial AI calling agents for this user.</CardDescription>
               </div>
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => append({ 
-                    id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Female 1", script: "" 
-                  })}
-                  className="gap-2 rounded-xl"
-                >
-                  <Plus className="h-4 w-4" /> Add Custom Agent
-                </Button>
-
-                <div className="relative">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowTemplateDropdown(!showTemplateDropdown)}
-                    className="gap-2 rounded-xl w-full sm:w-auto"
-                  >
-                    <Bot className="h-4 w-4" /> Add from Template
-                    <ChevronDown className={`h-4 w-4 transition-transform ${showTemplateDropdown ? "rotate-180" : ""}`} />
-                  </Button>
-                  
-                  {showTemplateDropdown && (
-                    <div className="absolute right-0 mt-1 w-56 z-50 rounded-xl border border-border bg-background shadow-lg overflow-hidden">
-                      {AGENT_TEMPLATES.map((template, idx) => (
-                        <button
-                          key={idx}
-                          type="button"
-                          className="w-full text-left px-4 py-2.5 text-sm hover:bg-muted/50 transition-colors border-b border-border/50 last:border-0"
-                          onClick={() => {
-                            append({
-                              id: `AGT-${Math.floor(Math.random() * 10000)}`,
-                              name: template.name,
-                              language: template.language,
-                              voice: template.voice,
-                              script: template.script
-                            })
-                            setShowTemplateDropdown(false)
-                          }}
-                        >
-                          <div className="font-medium">{template.name}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5 truncate">{template.script.substring(0, 30)}...</div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => append({ 
+                  id: `AGT-${Math.floor(Math.random() * 10000)}`, name: "", language: "English", voice: "Meera", script: "" 
+                })}
+                className="gap-2 rounded-xl"
+              >
+                <Plus className="h-4 w-4" /> Add Agent
+              </Button>
             </div>
             
             <CardContent className="p-6">
@@ -444,10 +369,12 @@ export default function CreateUserPage() {
                         </SelectGroup>
                         
                         <SelectGroup label="Voice Profile" icon={Mic} {...form.register(`agents.${index}.voice`)} error={errors.agents?.[index]?.voice?.message}>
-                          <option value="Female 1">Female 1 (Professional)</option>
-                          <option value="Female 2">Female 2 (Friendly)</option>
-                          <option value="Male 1">Male 1 (Deep)</option>
-                          <option value="Male 2">Male 2 (Energetic)</option>
+                          <option value="Meera">Meera (Female)</option>
+                          <option value="Raj">Raj (Male)</option>
+                          <option value="Manisha">Manisha (Female)</option>
+                          <option value="Karun">Karun (Male)</option>
+                          <option value="Vidya">Vidya (Female)</option>
+                          <option value="Hitesh">Hitesh (Male)</option>
                         </SelectGroup>
 
                         <div className="md:col-span-3 space-y-2">
