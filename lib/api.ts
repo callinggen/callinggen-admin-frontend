@@ -59,6 +59,20 @@ export async function fetchAdminUsers(): Promise<BackendUser[] | null> {
   }
 }
 
+export interface PhonePayload {
+  region: string;
+  phone_number: string;
+  number_type: string;
+  provider_name: string;
+  provider_account_id?: string;
+  api_key_auth_token?: string;
+  sip_id?: string;
+  sip_username?: string;
+  sip_password?: string;
+  status: string;
+  is_default: boolean;
+}
+
 export async function createAdminUser(data: {
   full_name: string;
   email: string;
@@ -72,7 +86,9 @@ export async function createAdminUser(data: {
   agent_language?: string;
   agent_voice?: string;
   agent_script?: string;
+  phones?: PhonePayload[];
 }): Promise<any> {
+
   const res = await fetch(`${API_BASE}/api/admin/users`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

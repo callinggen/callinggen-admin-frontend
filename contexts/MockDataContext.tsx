@@ -286,7 +286,21 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
         agent_language: primaryAgent?.language,
         agent_voice: primaryAgent?.voice,
         agent_script: primaryAgent?.script,
+        phones: newUser.phones?.map(p => ({
+          region: p.region,
+          phone_number: p.number,
+          number_type: p.numberType,
+          provider_name: p.provider,
+          provider_account_id: p.providerAccountId,
+          api_key_auth_token: p.apiKeyAuthToken,
+          sip_id: p.sipId,
+          sip_username: p.sipUsername,
+          sip_password: p.sipPassword,
+          status: p.status,
+          is_default: p.isDefault,
+        }))
       })
+
       await refreshData()
     } catch (e) {
       console.warn("Backend user creation synced locally only:", e)

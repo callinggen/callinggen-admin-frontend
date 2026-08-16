@@ -19,6 +19,20 @@ export type Agent = {
   status: "Active" | "Inactive" | "Error"
 }
 
+export type PhoneEntry = {
+  region: string
+  number: string
+  numberType: string
+  provider: string
+  providerAccountId?: string
+  apiKeyAuthToken?: string
+  sipId?: string
+  sipUsername?: string
+  sipPassword?: string
+  status: "Active" | "Inactive" | "Pending Verification"
+  isDefault: boolean
+}
+
 export type User = {
   id: string
   name: string
@@ -36,7 +50,9 @@ export type User = {
   status: "Active" | "Inactive" | "Suspended"
   createdAt: string
   agents: Agent[]
+  phones?: PhoneEntry[]
 }
+
 
 type UserDetailsDrawerProps = {
   user: User | null
