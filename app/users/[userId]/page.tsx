@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { cn } from "@/lib/utils"
 import { useMockData } from "@/contexts/MockDataContext"
 import { fetchUserActivity, fetchUserCampaigns, UserActivityStats, CampaignAggregatedStats } from "@/lib/api"
@@ -24,6 +25,7 @@ export default function UserProfilePage() {
   const [campaigns, setCampaigns] = useState<CampaignAggregatedStats[]>([])
   const [isFetchingStats, setIsFetchingStats] = useState(true)
   const [isFetchingCampaigns, setIsFetchingCampaigns] = useState(true)
+  const [selectedAgent, setSelectedAgent] = useState<any | null>(null)
 
   useEffect(() => {
     if (users && users.length > 0) {
@@ -160,7 +162,11 @@ export default function UserProfilePage() {
               {user.agents.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {user.agents.map(agent => (
-                    <div key={agent.id} className="flex items-center gap-4 rounded-lg border p-4">
+                    <div 
+                      key={agent.id} 
+                      className="flex items-center gap-4 rounded-lg border p-4 cursor-pointer hover:bg-muted/50 transition-colors shadow-sm"
+                      onClick={() => setSelectedAgent(agent)}
+                    >
                       <div className="p-2 rounded-full bg-primary/10 text-primary">
                         <Bot className="h-5 w-5" />
                       </div>
@@ -181,6 +187,23 @@ export default function UserProfilePage() {
               )}
             </CardContent>
           </Card>
+
+          <Dialog open={!!selectedAgent} onOpenChange={(open) => !open && setSelectedAgent(null)}>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 text-xl">
+                  <Bot className="h-5 w-5 text-primary" />
+                  {selectedAgent?.name} - Script
+                </DialogTitle>
+                <DialogDescription>
+                  Language: {selectedAgent?.language} • Voice: {selectedAgent?.voice}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="mt-4 p-4 rounded-md bg-muted/5 border border-border text-sm whitespace-pre-wrap leading-relaxed max-h-[50vh] overflow-y-auto">
+                {selectedAgent?.script || <span className="text-muted-foreground italic">No script configured for this agent.</span>}
+              </div>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
 
         {/* CAMPAIGNS TAB */}
