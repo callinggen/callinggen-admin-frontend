@@ -1,13 +1,16 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+
 import { useEffect, useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { X, Copy, Check, Edit2, Trash2, KeyRound, Bot } from "lucide-react"
+import { X, Copy, Check, Edit2, Trash2, KeyRound, Bot, Activity, PhoneCall, CheckCircle2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { UserFormModal } from "./UserFormModal"
 import { DeleteConfirmModal } from "./DeleteConfirmModal"
+import { fetchUserActivity, UserActivityStats } from "@/lib/api"
 
 export type Agent = {
   id: string
@@ -61,9 +64,40 @@ type UserDetailsDrawerProps = {
 }
 
 export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerProps) {
+  const router = useRouter()
   const [copied, setCopied] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  
+  const [activityStats, setActivityStats] = useState<UserActivityStats | null>(null)
+  const [isFetchingActivity, setIsFetchingActivity] = useState(false)
+  const [activityError, setActivityError] = useState(false)
+
+  // Fetch activity stats when opened
+  useEffect(() => {
+    if (isOpen && user?.id) {
+      let isMounted = true
+      setIsFetchingActivity(true)
+      setActivityError(false)
+      setActivityStats(null)
+
+      fetchUserActivity(user.id)
+        .then((data) => {
+          if (isMounted) {
+            if (data) setActivityStats(data)
+            else setActivityError(true)
+          }
+        })
+        .catch(() => {
+          if (isMounted) setActivityError(true)
+        })
+        .finally(() => {
+          if (isMounted) setIsFetchingActivity(false)
+        })
+      
+      return () => { isMounted = false }
+    }
+  }, [isOpen, user?.id])
 
   // Prevent background scrolling when open on mobile
   useEffect(() => {
@@ -184,6 +218,51 @@ export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerPr
 
                 </section>
 
+                {/* User Activity */}
+                <section className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+                      <Activity className="h-4 w-4" />
+                      User Activity (Today)
+                    </h3>
+                  </div>
+
+                  {isFetchingActivity ? (
+                    <div className="text-sm text-muted-foreground animate-pulse">Loading activity...</div>
+                  ) : activityError ? (
+                    <div className="text-sm text-destructive">Failed to load activity.</div>
+                  ) : activityStats ? (
+                    <div className="grid grid-cols-2 gap-3">
+                      <Card className="shadow-none border-border bg-slate-50/50">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-muted-foreground mb-1">Total Campaigns</p>
+                          <p className="text-lg font-semibold">{activityStats.total_campaigns}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="shadow-none border-border bg-slate-50/50">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1"><PhoneCall className="h-3 w-3" /> Calls Today</p>
+                          <p className="text-lg font-semibold">{activityStats.today.calls}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="shadow-none border-border bg-emerald-50/50">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-emerald-600 mb-1 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" /> Successful</p>
+                          <p className="text-lg font-semibold text-emerald-700">{activityStats.today.successful}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="shadow-none border-border bg-destructive/5">
+                        <CardContent className="p-3">
+                          <p className="text-xs text-destructive mb-1 flex items-center gap-1"><XCircle className="h-3 w-3" /> Failed</p>
+                          <p className="text-lg font-semibold text-destructive">{activityStats.today.failed}</p>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No activity data available.</div>
+                  )}
+                </section>
+
                 {/* Agents */}
                 <section className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -203,9 +282,6 @@ export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerPr
                                 <p className="text-sm font-medium leading-none mb-1">{agent.name}</p>
                                 <p className="text-xs text-muted-foreground mb-1">
                                   {agent.language} • {agent.voice}
-                                </p>
-                                <p className="text-xs text-muted-foreground truncate" title={agent.script}>
-                                  "{agent.script}"
                                 </p>
                                 {agent.knowledgebaseDoc && (
                                   <p className="text-xs text-blue-600 mt-1 truncate">
@@ -233,19 +309,29 @@ export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerPr
               </div>
 
               {/* Actions / Footer */}
-              <div className="border-t p-4 bg-muted/10 grid grid-cols-2 gap-2">
-                <Button variant="outline" className="w-full justify-start gap-2" onClick={() => setIsEditModalOpen(true)}>
-                  <Edit2 className="h-4 w-4 text-muted-foreground" />
-                  Edit User
+              <div className="border-t p-4 bg-muted/10 flex flex-col gap-2">
+                <Button 
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                  onClick={() => {
+                    if(user?.id) router.push(`/users/${user.id}`)
+                  }}
+                >
+                  View Full Profile
                 </Button>
-                <Button variant="outline" className="w-full justify-start gap-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30">
-                  <KeyRound className="h-4 w-4" />
-                  Reset Pass
-                </Button>
-                <Button variant="outline" className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/5 border-destructive/20" onClick={() => setIsDeleteModalOpen(true)}>
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
+                <div className="grid grid-cols-3 gap-2">
+                  <Button variant="outline" className="w-full justify-center gap-1.5 px-2" onClick={() => setIsEditModalOpen(true)}>
+                    <Edit2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs">Edit</span>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-center gap-1.5 px-2 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/30">
+                    <KeyRound className="h-4 w-4" />
+                    <span className="text-xs">Reset</span>
+                  </Button>
+                  <Button variant="outline" className="w-full justify-center gap-1.5 px-2 text-destructive hover:text-destructive hover:bg-destructive/5 border-destructive/20" onClick={() => setIsDeleteModalOpen(true)}>
+                    <Trash2 className="h-4 w-4" />
+                    <span className="text-xs">Delete</span>
+                  </Button>
+                </div>
               </div>
             </motion.div>
           </>

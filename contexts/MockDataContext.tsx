@@ -146,7 +146,7 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     mobile: u.mobile || u.phone || "",
     phone: u.phone || u.mobile || "",
     password: "password123",
-    industry: "Calling Platform",
+    industry: u.industry || "Calling Platform",
     provider: "Vobiz",
     organization: u.organization || u.name || "CallingGen",
     plan: planName,
@@ -155,7 +155,15 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     type: u.type || ((u.credits !== undefined && u.credits <= 50) || planName === "Demo" ? "Demo" : "Regular"),
     status: u.status || "Active",
     createdAt: u.createdAt || new Date().toISOString(),
-    agents: []
+    agents: (u.agents || []).map((ag: any) => ({
+      id: ag.id,
+      name: ag.name,
+      language: ag.language,
+      voice: ag.voice,
+      script: ag.script,
+      knowledgebaseDoc: ag.knowledgebaseDoc || "",
+      status: ag.status as any
+    }))
   }
 }
 
@@ -268,9 +276,6 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
   }
 
   const addUser = async (newUser: User) => {
-    setUsers(prev => [newUser, ...prev])
-    createNotification(`New user account created: ${newUser.organization || newUser.name}`)
-
     try {
       const primaryAgent = newUser.agents?.[0]
       await createAdminUser({
@@ -301,9 +306,12 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
         }))
       })
 
+      setUsers(prev => [newUser, ...prev])
+      createNotification(`New user account created: ${newUser.organization || newUser.name}`)
       await refreshData()
     } catch (e) {
-      console.warn("Backend user creation synced locally only:", e)
+      console.warn("Backend user creation failed:", e)
+      throw e // Re-throw so the UI catches it
     }
   }
 

@@ -8,12 +8,14 @@ export interface BackendUser {
   mobile?: string
   phone?: string
   organization?: string
+  industry?: string
   plan?: string
   credits?: number
   type?: "Regular" | "Demo"
   status?: "Active" | "Inactive" | "Suspended"
   is_admin?: boolean
   createdAt?: string
+  agents?: any[]
 }
 
 export interface DashboardStats {
@@ -125,4 +127,53 @@ export async function deleteAdminUser(userId: string): Promise<any> {
     throw new Error(err.detail || "Failed to delete user")
   }
   return res.json()
+}
+
+export interface UserActivityStats {
+  user_id: string;
+  total_campaigns: number;
+  today: {
+    calls: number;
+    successful: number;
+    failed: number;
+  };
+}
+
+export async function fetchUserActivity(userId: string): Promise<UserActivityStats | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/users/${userId}/activity`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    }).catch(() => null)
+    if (!res || !res.ok) return null
+    return await res.json().catch(() => null)
+  } catch {
+    return null
+  }
+}
+
+export interface CampaignAggregatedStats {
+  id: number;
+  campaign_name: string;
+  created_at: string | null;
+  status: string;
+  total_contacts: number;
+  calls_made: number;
+  successful_calls: number;
+  failed_calls: number;
+}
+
+export async function fetchUserCampaigns(userId: string): Promise<CampaignAggregatedStats[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/users/${userId}/campaigns`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    }).catch(() => null)
+    if (!res || !res.ok) return []
+    return await res.json().catch(() => [])
+  } catch {
+    return []
+  }
 }
