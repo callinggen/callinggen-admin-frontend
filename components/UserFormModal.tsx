@@ -17,6 +17,7 @@ const userSchema = z.object({
   password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
   organization: z.string().min(1, "Organization is required"),
   plan: z.enum(["Starter", "Standard", "Pro", "Optional", "Demo"]),
+  topUpCredits: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= 50), { message: "Minimum top-up is 50 credits" }),
   agents: z.array(z.object({
     id: z.string().min(1, "Agent ID is required"),
     name: z.string().min(1, "Agent Name is required"),
@@ -44,6 +45,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
       password: "",
       organization: "",
       plan: "Starter",
+      topUpCredits: "",
       agents: []
     }
   })
@@ -63,6 +65,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
           password: "", // Don't pre-fill password
           organization: userToEdit.organization,
           plan: userToEdit.plan,
+          topUpCredits: "",
           agents: userToEdit.agents
         })
       } else {
@@ -72,6 +75,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
           password: "",
           organization: "",
           plan: "Starter",
+          topUpCredits: "",
           agents: []
         })
       }
@@ -93,15 +97,19 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
     }
 
     if (isEditing && userToEdit) {
+      const additionalCredits = data.topUpCredits ? Number(data.topUpCredits) : 0
+      const newCredits = (userToEdit.credits || 0) + additionalCredits
+
       updateUser(userToEdit.id, {
         id: data.id,
         email: data.email,
         organization: data.organization,
         plan: data.plan,
+        credits: newCredits,
         type: data.plan === "Demo" ? "Demo" : "Regular",
         agents: data.agents as Agent[]
       })
-      toast.success("User updated successfully!")
+      toast.success(additionalCredits > 0 ? `User updated and ${additionalCredits} credits added!` : "User updated successfully!")
     } else {
       addUser({
         id: data.id,
@@ -169,7 +177,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
               <label className="text-sm font-medium leading-none">Password {isEditing && "(Leave blank to keep)"}</label>
               <Input type="password" {...form.register("password")} error={form.formState.errors.password?.message} />
             </div>
-            <div className="space-y-2 col-span-2">
+            <div className={`space-y-2 ${isEditing ? "col-span-1" : "col-span-2"}`}>
               <label className="text-sm font-medium leading-none">Selected Plan</label>
               <select 
                 {...form.register("plan")}
@@ -182,6 +190,22 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
                 <option value="Demo">Demo</option>
               </select>
             </div>
+            {isEditing && (
+              <div className="space-y-2 col-span-1">
+                <label className="text-sm font-medium leading-none">Top Up Credits (Optional)</label>
+                <div className="flex flex-col">
+                  <Input 
+                    type="number" 
+                    placeholder="Min 50" 
+                    {...form.register("topUpCredits")} 
+                    error={form.formState.errors.topUpCredits?.message} 
+                  />
+                  <p className="text-[0.75rem] text-muted-foreground mt-1">
+                    Current: {userToEdit?.credits || 0}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-4 pt-4 border-t">
