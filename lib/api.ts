@@ -8,13 +8,14 @@ export interface BackendUser {
   mobile?: string
   phone?: string
   organization?: string
+  industry?: string
   plan?: string
   credits?: number
   type?: "Regular" | "Demo"
   status?: "Active" | "Inactive" | "Suspended"
   is_admin?: boolean
   createdAt?: string
-  agents?: Array<{ id: string; name: string; language: string; voice: string; script: string; status?: string }>
+  agents?: any[]
 }
 
 export interface DashboardStats {
@@ -60,6 +61,20 @@ export async function fetchAdminUsers(): Promise<BackendUser[] | null> {
   }
 }
 
+export interface PhonePayload {
+  region: string;
+  phone_number: string;
+  number_type: string;
+  provider_name: string;
+  provider_account_id?: string;
+  api_key_auth_token?: string;
+  sip_id?: string;
+  sip_username?: string;
+  sip_password?: string;
+  status: string;
+  is_default: boolean;
+}
+
 export async function createAdminUser(data: {
   full_name: string;
   email: string;
@@ -73,8 +88,9 @@ export async function createAdminUser(data: {
   agent_language?: string;
   agent_voice?: string;
   agent_script?: string;
-  agents?: Array<{ name: string; language: string; voice: string; script: string }>;
+  phones?: PhonePayload[];
 }): Promise<any> {
+
   const res = await fetch(`${API_BASE}/api/admin/users`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -111,4 +127,53 @@ export async function deleteAdminUser(userId: string): Promise<any> {
     throw new Error(err.detail || "Failed to delete user")
   }
   return res.json()
+}
+
+export interface UserActivityStats {
+  user_id: string;
+  total_campaigns: number;
+  today: {
+    calls: number;
+    successful: number;
+    failed: number;
+  };
+}
+
+export async function fetchUserActivity(userId: string): Promise<UserActivityStats | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/users/${userId}/activity`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    }).catch(() => null)
+    if (!res || !res.ok) return null
+    return await res.json().catch(() => null)
+  } catch {
+    return null
+  }
+}
+
+export interface CampaignAggregatedStats {
+  id: number;
+  campaign_name: string;
+  created_at: string | null;
+  status: string;
+  total_contacts: number;
+  calls_made: number;
+  successful_calls: number;
+  failed_calls: number;
+}
+
+export async function fetchUserCampaigns(userId: string): Promise<CampaignAggregatedStats[]> {
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/users/${userId}/campaigns`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json" },
+      cache: "no-store",
+    }).catch(() => null)
+    if (!res || !res.ok) return []
+    return await res.json().catch(() => [])
+  } catch {
+    return []
+  }
 }

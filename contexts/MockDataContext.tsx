@@ -146,7 +146,7 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     mobile: u.mobile || u.phone || "",
     phone: u.phone || u.mobile || "",
     password: "password123",
-    industry: "Calling Platform",
+    industry: u.industry || "Calling Platform",
     provider: "Vobiz",
     organization: u.organization || u.name || "CallingGen",
     plan: planName,
@@ -155,14 +155,14 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     type: u.type || ((u.credits !== undefined && u.credits <= 50) || planName === "Demo" ? "Demo" : "Regular"),
     status: u.status || "Active",
     createdAt: u.createdAt || new Date().toISOString(),
-    agents: (u.agents || []).map(a => ({
-      id: a.id || `AGT-${Math.floor(Math.random() * 1000)}`,
-      name: a.name,
-      language: a.language || "English",
-      voice: a.voice || "Meera",
-      script: a.script || "",
-      knowledgebaseDoc: "",
-      status: "Active" as const
+    agents: (u.agents || []).map((ag: any) => ({
+      id: ag.id,
+      name: ag.name,
+      language: ag.language,
+      voice: ag.voice,
+      script: ag.script,
+      knowledgebaseDoc: ag.knowledgebaseDoc || "",
+      status: ag.status as any
     }))
   }
 }
@@ -276,9 +276,6 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
   }
 
   const addUser = async (newUser: User) => {
-    setUsers(prev => [newUser, ...prev])
-    createNotification(`New user account created: ${newUser.organization || newUser.name}`)
-
     try {
       const primaryAgent = newUser.agents?.[0]
       await createAdminUser({
@@ -294,16 +291,27 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
         agent_language: primaryAgent?.language,
         agent_voice: primaryAgent?.voice,
         agent_script: primaryAgent?.script,
-        agents: newUser.agents?.map(a => ({
-          name: a.name,
-          language: a.language,
-          voice: a.voice,
-          script: a.script,
-        })),
+        phones: newUser.phones?.map(p => ({
+          region: p.region,
+          phone_number: p.number,
+          number_type: p.numberType,
+          provider_name: p.provider,
+          provider_account_id: p.providerAccountId,
+          api_key_auth_token: p.apiKeyAuthToken,
+          sip_id: p.sipId,
+          sip_username: p.sipUsername,
+          sip_password: p.sipPassword,
+          status: p.status,
+          is_default: p.isDefault,
+        }))
       })
+
+      setUsers(prev => [newUser, ...prev])
+      createNotification(`New user account created: ${newUser.organization || newUser.name}`)
       await refreshData()
     } catch (e) {
-      console.warn("Backend user creation synced locally only:", e)
+      console.warn("Backend user creation failed:", e)
+      throw e // Re-throw so the UI catches it
     }
   }
 
