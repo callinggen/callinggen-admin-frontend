@@ -1,3 +1,4 @@
+import { API_BASE } from "../lib/api";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -69,7 +70,7 @@ export function ContactFormUsersTable() {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await fetch("http://127.0.0.1:8000/api/admin/contact-users");
+      const response = await fetch(`${API_BASE}/api/admin/contact-users`);
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -83,7 +84,7 @@ export function ContactFormUsersTable() {
 
   const fetchBlockedSlots = async () => {
     try {
-      const response = await fetch("http://127.0.0.1:8000/api/admin/blocked-slots");
+      const response = await fetch(`${API_BASE}/api/admin/blocked-slots`);
       if (response.ok) {
         const data = await response.json();
         setBlockedSlots(data);
@@ -95,7 +96,7 @@ export function ContactFormUsersTable() {
 
   const handleStatusChange = async (userId: number, newStatus: string) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/admin/contact-users/${userId}/status`, {
+      const response = await fetch(`${API_BASE}/api/admin/contact-users/${userId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -113,7 +114,7 @@ export function ContactFormUsersTable() {
     if (!selectedUserForNotes) return;
     try {
       setIsSavingNotes(true);
-      const response = await fetch(`http://127.0.0.1:8000/api/admin/contact-users/${selectedUserForNotes.id}/status`, {
+      const response = await fetch(`${API_BASE}/api/admin/contact-users/${selectedUserForNotes.id}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -138,7 +139,7 @@ export function ContactFormUsersTable() {
     if (!newBlockDate) return;
     try {
       setIsBlocking(true);
-      const response = await fetch("http://127.0.0.1:8000/api/admin/blocked-slots", {
+      const response = await fetch(`${API_BASE}/api/admin/blocked-slots`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -163,7 +164,7 @@ export function ContactFormUsersTable() {
 
   const handleUnblock = async (blockId: number) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/admin/blocked-slots/${blockId}`, {
+      const response = await fetch(`${API_BASE}/api/admin/blocked-slots/${blockId}`, {
         method: "DELETE",
       });
       if (response.ok) {

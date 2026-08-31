@@ -1,3 +1,4 @@
+import { API_BASE } from "../lib/api";
 "use client"
 
 import { useState, useEffect } from "react"
@@ -55,7 +56,7 @@ export function DemoLeadsTable() {
   const fetchLeads = async () => {
     try {
       setIsLoading(true)
-      const response = await fetch("http://localhost:8000/api/demo/leads")
+      const response = await fetch(`${API_BASE}/api/demo/leads`)
       if (response.ok) {
         const data = await response.json()
         setLeads(data)
@@ -78,7 +79,7 @@ export function DemoLeadsTable() {
     setNotificationMsg(null)
 
     try {
-      const response = await fetch(`http://localhost:8000/api/demo/leads/${lead.id}/trigger-call`, {
+      const response = await fetch(`${API_BASE}/api/demo/leads/${lead.id}/trigger-call`, {
         method: "POST",
       })
       const data = await response.json()
@@ -100,7 +101,7 @@ export function DemoLeadsTable() {
   // Update Status
   const handleStatusChange = async (leadId: number, newStatus: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/demo/leads/${leadId}/status`, {
+      const response = await fetch(`${API_BASE}/api/demo/leads/${leadId}/status`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
@@ -118,7 +119,7 @@ export function DemoLeadsTable() {
     setIsModalOpen(true)
     setCallDetailsLoading(true)
     try {
-      const response = await fetch(`http://localhost:8000/api/demo/lead/${leadId}/details`)
+      const response = await fetch(`${API_BASE}/api/demo/lead/${leadId}/details`)
       if (response.ok) {
         const data = await response.json()
         setSelectedCall(data)
@@ -479,7 +480,7 @@ export function DemoLeadsTable() {
                   <div className="flex items-center gap-4">
                     <audio 
                       ref={audioRef} 
-                      src={`http://localhost:8000${selectedCall.recording_url}`} 
+                      src={`${API_BASE}${selectedCall.recording_url}`} 
                       onEnded={() => setIsPlaying(false)} 
                       className="hidden" 
                     />
