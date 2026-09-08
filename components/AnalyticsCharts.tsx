@@ -30,7 +30,7 @@ export function AnalyticsCharts() {
     if (dashboardStats?.plan_distribution && dashboardStats.plan_distribution.length > 0) {
       return dashboardStats.plan_distribution
     }
-    const counts: Record<string, number> = { Starter: 0, Standard: 0, Pro: 0, Optional: 0, Demo: 0 }
+    const counts: Record<string, number> = { Starter: 0, Growth: 0, Standard: 0, Pro: 0, Optional: 0, Demo: 0 }
     users.forEach(u => {
       if (u.plan && counts[u.plan] !== undefined) {
         counts[u.plan] += 1
@@ -48,7 +48,7 @@ export function AnalyticsCharts() {
     if (dashboardStats?.credits_by_plan && dashboardStats.credits_by_plan.length > 0) {
       return dashboardStats.credits_by_plan
     }
-    const creditsMap: Record<string, number> = { Starter: 0, Standard: 0, Pro: 0, Optional: 0, Demo: 0 }
+    const creditsMap: Record<string, number> = { Starter: 0, Growth: 0, Standard: 0, Pro: 0, Optional: 0, Demo: 0 }
     users.forEach(u => {
       const plan = u.plan || "Starter"
       creditsMap[plan] = (creditsMap[plan] || 0) + (u.credits || 0)
@@ -82,11 +82,13 @@ export function AnalyticsCharts() {
       return dashboardStats.revenue_data
     }
     const starterPrice = 49
+    const growthPrice = 99
     const standardPrice = 149
     const proPrice = 499
 
     const currentMonthlyRevenue = users.reduce((acc, u) => {
       if (u.plan === "Starter") return acc + starterPrice
+      if (u.plan === "Growth") return acc + growthPrice
       if (u.plan === "Standard") return acc + standardPrice
       if (u.plan === "Pro") return acc + proPrice
       return acc

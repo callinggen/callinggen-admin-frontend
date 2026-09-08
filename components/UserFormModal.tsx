@@ -16,7 +16,7 @@ const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
   organization: z.string().min(1, "Organization is required"),
-  plan: z.enum(["Starter", "Standard", "Pro", "Optional", "Demo"]),
+  plan: z.enum(["Starter", "Standard", "Growth", "Pro", "Optional", "Demo"]),
   topUpCredits: z.string().optional().refine(val => !val || (!isNaN(Number(val)) && Number(val) >= 50), { message: "Minimum top-up is 50 credits" }),
   agents: z.array(z.object({
     id: z.string().min(1, "Agent ID is required"),
@@ -187,6 +187,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <option value="Starter">Starter</option>
+                <option value="Growth">Growth</option>
                 <option value="Standard">Standard</option>
                 <option value="Pro">Pro</option>
                 <option value="Optional">Optional</option>
