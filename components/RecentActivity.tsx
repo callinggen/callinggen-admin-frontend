@@ -111,6 +111,7 @@ export function RecentActivity() {
                         <span className={cn(
                           "rounded-full px-2.5 py-1 text-xs font-medium",
                           user.plan === "Pro" && "bg-primary/10 text-primary",
+                          user.plan === "Growth" && "bg-indigo-500/10 text-indigo-600",
                           user.plan === "Standard" && "bg-blue-500/10 text-blue-600",
                           user.plan === "Starter" && "bg-emerald-500/10 text-emerald-600",
                           user.plan === "Optional" && "bg-slate-500/10 text-slate-600",

@@ -135,9 +135,9 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined)
 
 function mapBackendUserToFrontend(u: BackendUser): User {
-  const planName = u.plan && ["Starter", "Standard", "Pro", "Optional", "Demo"].includes(u.plan)
+  const planName = u.plan && ["Starter", "Standard", "Growth", "Pro", "Optional", "Demo"].includes(u.plan)
     ? (u.plan as User["plan"])
-    : "Starter"
+    : "Growth"
 
   return {
     id: u.id.startsWith("USR-") ? u.id : `USR-${u.id}`,
@@ -147,7 +147,7 @@ function mapBackendUserToFrontend(u: BackendUser): User {
     phone: u.phone || u.mobile || "",
     password: "password123",
     industry: u.industry || "Calling Platform",
-    provider: "Vobiz",
+    provider: (u as any).provider || "Telnyx",
     organization: u.organization || u.name || "CallingGen",
     plan: planName,
     credits: u.credits ?? 2000,
