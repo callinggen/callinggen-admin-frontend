@@ -58,9 +58,11 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
     control: form.control
   })
 
-  // Reset form when modal opens/closes or userToEdit changes
+  const prevOpenRef = React.useRef(false)
+
+  // Reset form ONLY when modal transitions from closed to open
   React.useEffect(() => {
-    if (open) {
+    if (open && !prevOpenRef.current) {
       if (userToEdit) {
         form.reset({
           id: userToEdit.id,
@@ -69,7 +71,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
           organization: userToEdit.organization,
           plan: userToEdit.plan,
           topUpCredits: "",
-          agents: userToEdit.agents
+          agents: userToEdit.agents ? JSON.parse(JSON.stringify(userToEdit.agents)) : []
         })
       } else {
         form.reset({
@@ -83,7 +85,8 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
         })
       }
     }
-  }, [open, userToEdit, form, users.length])
+    prevOpenRef.current = open
+  }, [open, userToEdit])
 
   const onSubmit = async (data: UserFormValues) => {
     if (!isEditing) {
