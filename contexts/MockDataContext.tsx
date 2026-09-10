@@ -321,12 +321,17 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
     createNotification(`User account details updated: ${orgName}`)
 
     try {
+      const primaryAgent = data.agents && data.agents.length > 0 ? data.agents[0] : null
       await updateAdminUser(id, {
-        full_name: data.name,
+        full_name: data.organization || data.name,
         email: data.email,
         phone_number: data.phone || data.mobile,
         credits: data.credits,
         subscription_plan: data.plan,
+        agent_name: primaryAgent?.name,
+        agent_language: primaryAgent?.language,
+        agent_voice: primaryAgent?.voice,
+        agent_script: primaryAgent?.script,
         agents: data.agents?.map(a => ({
           name: a.name,
           language: a.language || "English",
@@ -336,7 +341,8 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
       })
       await refreshData()
     } catch (e) {
-      console.warn("Backend user update synced locally only:", e)
+      console.warn("Backend user update failed:", e)
+      throw e
     }
   }
 

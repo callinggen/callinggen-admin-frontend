@@ -85,7 +85,7 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
     }
   }, [open, userToEdit, form, users.length])
 
-  const onSubmit = (data: UserFormValues) => {
+  const onSubmit = async (data: UserFormValues) => {
     if (!isEditing) {
       // Mock unique ID validation
       if (users.some(u => u.id === data.id)) {
@@ -103,38 +103,47 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
       const additionalCredits = data.topUpCredits ? Number(data.topUpCredits) : 0
       const newCredits = (userToEdit.credits || 0) + additionalCredits
 
-      updateUser(userToEdit.id, {
-        id: data.id,
-        email: data.email,
-        organization: data.organization,
-        plan: data.plan,
-        credits: newCredits,
-        type: data.plan === "Demo" ? "Demo" : "Regular",
-        agents: data.agents as Agent[]
-      })
-      toast.success(additionalCredits > 0 ? `User updated and ${additionalCredits} credits added!` : "User updated successfully!")
+      try {
+        await updateUser(userToEdit.id, {
+          id: data.id,
+          name: data.organization,
+          email: data.email,
+          organization: data.organization,
+          plan: data.plan,
+          credits: newCredits,
+          type: data.plan === "Demo" ? "Demo" : "Regular",
+          agents: data.agents as Agent[]
+        })
+        toast.success(additionalCredits > 0 ? `User updated and ${additionalCredits} credits added!` : "User updated successfully!")
+        onOpenChange(false)
+      } catch (err: any) {
+        toast.error(err.message || "Failed to update user. Please try again.")
+      }
     } else {
-      addUser({
-        id: data.id,
-        name: "Unknown",
-        email: data.email,
-        mobile: "N/A",
-        phone: "N/A",
-        industry: "Unknown",
-        provider: "Vobiz",
-        organization: data.organization,
-        plan: data.plan,
-        apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
-        type: "Regular",
-        status: "Active",
-        credits: 10000,
-        createdAt: new Date().toISOString(),
-        agents: data.agents as Agent[]
-      })
-      toast.success("User created successfully!")
+      try {
+        await addUser({
+          id: data.id,
+          name: data.organization || "Unknown",
+          email: data.email,
+          mobile: "N/A",
+          phone: "N/A",
+          industry: "Unknown",
+          provider: "Vobiz",
+          organization: data.organization,
+          plan: data.plan,
+          apiKey: `cg_live_${Math.random().toString(36).substring(2, 15)}`,
+          type: "Regular",
+          status: "Active",
+          credits: 10000,
+          createdAt: new Date().toISOString(),
+          agents: data.agents as Agent[]
+        })
+        toast.success("User created successfully!")
+        onOpenChange(false)
+      } catch (err: any) {
+        toast.error(err.message || "Failed to create user.")
+      }
     }
-    
-    onOpenChange(false)
   }
 
   // Helper for rendering inputs
@@ -286,8 +295,10 @@ export function UserFormModal({ open, onOpenChange, userToEdit }: UserFormModalP
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-            <Button type="submit">{isEditing ? "Save Changes" : "Create User"}</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={form.formState.isSubmitting}>Cancel</Button>
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              {form.formState.isSubmitting ? "Saving..." : isEditing ? "Save Changes" : "Create User"}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>
