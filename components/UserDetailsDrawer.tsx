@@ -46,7 +46,7 @@ export type User = {
   industry: string
   provider: string
   organization: string
-  plan: "Starter" | "Standard" | "Growth" | "Pro" | "Optional" | "Demo"
+  plan: "Starter" | "Standard" | "Growth" | "Pro" | "Business" | "Optional" | "Demo"
   credits: number
   apiKey: string
   type: "Regular" | "Demo"
@@ -186,6 +186,7 @@ export function UserDetailsDrawer({ user, isOpen, onClose }: UserDetailsDrawerPr
                       <p className="text-xs text-muted-foreground">Plan</p>
                       <span className={cn(
                         "inline-flex rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                        user.plan === "Business" && "bg-purple-500/10 text-purple-600",
                         user.plan === "Pro" && "bg-primary/10 text-primary",
                         user.plan === "Growth" && "bg-indigo-500/10 text-indigo-600",
                         user.plan === "Standard" && "bg-blue-500/10 text-blue-600",

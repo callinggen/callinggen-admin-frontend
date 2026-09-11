@@ -110,6 +110,7 @@ export function RecentActivity() {
                       <td className="px-6 py-4">
                         <span className={cn(
                           "rounded-full px-2.5 py-1 text-xs font-medium",
+                          user.plan === "Business" && "bg-purple-500/10 text-purple-600",
                           user.plan === "Pro" && "bg-primary/10 text-primary",
                           user.plan === "Growth" && "bg-indigo-500/10 text-indigo-600",
                           user.plan === "Standard" && "bg-blue-500/10 text-blue-600",

@@ -27,7 +27,7 @@ const userFormSchema = z.object({
   mobile: z.string().min(1, "Mobile number is required"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string().min(6, "Confirm password is required"),
-  plan: z.enum(["Starter", "Standard", "Growth", "Pro", "Optional", "Demo"]),
+  plan: z.enum(["Starter", "Growth", "Pro", "Business", "Standard", "Optional", "Demo"]),
   credits: z.number().min(0, "Credits cannot be negative"),
   
   // Telephony Configuration with ALL 11 required fields
@@ -115,10 +115,11 @@ export default function CreateUserPage() {
   // Update credits when plan changes
   useEffect(() => {
     if (selectedPlan === "Demo") form.setValue("credits", 50)
-    else if (selectedPlan === "Starter") form.setValue("credits", 500)
-    else if (selectedPlan === "Growth") form.setValue("credits", 1000)
+    else if (selectedPlan === "Starter") form.setValue("credits", 2000)
+    else if (selectedPlan === "Growth") form.setValue("credits", 5000)
+    else if (selectedPlan === "Pro") form.setValue("credits", 10000)
+    else if (selectedPlan === "Business") form.setValue("credits", 25000)
     else if (selectedPlan === "Standard") form.setValue("credits", 2000)
-    else if (selectedPlan === "Pro") form.setValue("credits", 5000)
     else if (selectedPlan === "Optional") form.setValue("credits", 0)
   }, [selectedPlan, form])
 
@@ -270,10 +271,10 @@ export default function CreateUserPage() {
                 <SelectGroup label="Subscription Plan" icon={CreditCard} {...form.register("plan")} error={errors.plan?.message}>
                   <option value="" disabled>Select Plan</option>
                   <option value="Demo">Demo (50 Credits)</option>
-                  <option value="Starter">Starter (500 Credits)</option>
-                  <option value="Growth">Growth (1,000 Credits)</option>
-                  <option value="Standard">Standard (2,000 Credits)</option>
-                  <option value="Pro">Pro (5,000 Credits)</option>
+                  <option value="Starter">Starter (2,000 Credits)</option>
+                  <option value="Growth">Growth (5,000 Credits)</option>
+                  <option value="Pro">Pro (10,000 Credits)</option>
+                  <option value="Business">Business (25,000 Credits)</option>
                   <option value="Optional">Optional (Custom Balance)</option>
                 </SelectGroup>
                 

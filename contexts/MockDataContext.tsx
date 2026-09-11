@@ -135,7 +135,7 @@ const INITIAL_NOTIFICATIONS: Notification[] = [
 const MockDataContext = createContext<MockDataContextType | undefined>(undefined)
 
 function mapBackendUserToFrontend(u: BackendUser): User {
-  const planName = u.plan && ["Starter", "Standard", "Growth", "Pro", "Optional", "Demo"].includes(u.plan)
+  const planName = u.plan && ["Starter", "Standard", "Growth", "Pro", "Business", "Optional", "Demo"].includes(u.plan)
     ? (u.plan as User["plan"])
     : "Growth"
 

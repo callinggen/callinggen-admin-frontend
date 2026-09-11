@@ -65,6 +65,7 @@ export function UserManagementTable({ filterType }: { filterType?: "Regular" | "
         return (
           <span className={cn(
             "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+            plan === "Business" && "bg-purple-500/10 text-purple-600",
             plan === "Pro" && "bg-primary/10 text-primary",
             plan === "Growth" && "bg-indigo-500/10 text-indigo-600",
             plan === "Standard" && "bg-blue-500/10 text-blue-600",
